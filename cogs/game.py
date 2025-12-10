@@ -386,40 +386,19 @@ class GameCog(commands.Cog):
         
         # [V2] Min length validation (English)
         if game_state['language'] == 'en' and len(word) < config.MIN_WORD_LENGTH_EN:
-            embed = discord.Embed(
-                title=f"{emojis.WRONG} Từ Quá Ngắn!",
-                description=f"Từ tiếng Anh phải có ít nhất **{config.MIN_WORD_LENGTH_EN} chữ cái**!",
-                color=config.COLOR_ERROR
-            )
-            await message.channel.send(embed=embed)
-            await self.db.add_points(message.author.id, message.guild.id, config.POINTS_WRONG)
+            await self.handle_wrong_answer(message, game_state, word, f"Từ tiếng Anh phải có ít nhất **{config.MIN_WORD_LENGTH_EN} chữ cái**!")
             return
 
         # Kiểm tra từ đã dùng chưa
         if word in game_state['used_words']:
-            embed = embeds.create_wrong_answer_embed(
-                message.author.mention,
-                word,
-                "Từ này đã được sử dụng rồi!"
-            )
-            await message.channel.send(embed=embed)
-            await self.db.add_points(message.author.id, message.guild.id, config.POINTS_WRONG)
-            await self.db.update_player_stats(message.author.id, message.guild.id, word, False)
+            await self.handle_wrong_answer(message, game_state, word, "Từ này đã được sử dụng rồi!")
             return
         
         # Kiểm tra nối từ đúng không
         can_chain, reason = await validator.can_chain(game_state['current_word'], word)
         
         if not can_chain:
-            # Sai
-            embed = embeds.create_wrong_answer_embed(
-                message.author.mention,
-                word,
-                reason
-            )
-            await message.channel.send(embed=embed)
-            await self.db.add_points(message.author.id, message.guild.id, config.POINTS_WRONG)
-            await self.db.update_player_stats(message.author.id, message.guild.id, word, False)
+            await self.handle_wrong_answer(message, game_state, word, reason)
             return
         
         # ĐÚNG!
@@ -429,19 +408,22 @@ class GameCog(commands.Cog):
         
         # [V2] Calculate points with Time Bonus
         import time
-        points = config.POINTS_CORRECT
+        points = config.POINTS_CORRECT # 10 points base
         bonus_list = []
         
         # Time Bonus
         turn_start = game_state.get('turn_start_time', 0)
         if turn_start > 0:
             elapsed = time.time() - turn_start
-            if elapsed < 10:
-                points += config.POINTS_FAST_REPLY
-                bonus_list.append(f"⚡ Siêu tốc! (+{config.POINTS_FAST_REPLY})")
+            if elapsed < 5:
+                points += 10 # Siêu tốc (<5s)
+                bonus_list.append(f"⚡ Siêu tốc! (+10)")
+            elif elapsed < 10:
+                points += 5  # Nhanh (<10s)
+                bonus_list.append(f"🏃 Nhanh! (+5)")
             elif elapsed < 20:
-                points += config.POINTS_MEDIUM_REPLY
-                bonus_list.append(f"🏃 Nhanh! (+{config.POINTS_MEDIUM_REPLY})")
+                points += 2  # Khá (<20s)
+                bonus_list.append(f"🙂 Khá! (+2)")
         
         # Word Length/Advanced Bonus
         word_info = None
@@ -454,19 +436,18 @@ class GameCog(commands.Cog):
                 meaning_vi = await validator.cambridge_api.get_vietnamese_meaning(word)
 
             # Check length bonus
-            if len(word) >= config.LONG_WORD_THRESHOLD:
-                # Check dictionary for advanced status
-                word_info = await validator.cambridge_api.get_word_info(word, 'en')
-                if word_info and word_info.get('is_advanced'):
-                    points += config.POINTS_ADVANCED_WORD
-                    bonus_list.append(f"📚 Từ cao cấp! (+{config.POINTS_ADVANCED_WORD})")
-                    is_advanced = True
-                else:
-                    # Just long word
-                    points += config.POINTS_LONG_WORD
-                    bonus_list.append(f"📝 Từ dài! (+{config.POINTS_LONG_WORD})")
+            # Check dictionary for advanced status or long status
+            word_info = await validator.cambridge_api.get_word_info(word, 'en')
+            if word_info and word_info.get('is_advanced'):
+                points += config.POINTS_ADVANCED_WORD # 20 points
+                bonus_list.append(f"📚 Từ cao cấp! (+{config.POINTS_ADVANCED_WORD})")
+            elif len(word) >= config.LONG_WORD_THRESHOLD:
+                # Just long word
+                points += config.POINTS_LONG_WORD # 20 points
+                bonus_list.append(f"📝 Từ dài! (+{config.POINTS_LONG_WORD})")
+                
         elif validator.is_long_word(word):
-            points += config.POINTS_LONG_WORD
+            points += config.POINTS_LONG_WORD # 20 points
             bonus_list.append(f"{emojis.FIRE} Từ dài! (+{config.POINTS_LONG_WORD})")
             
         bonus_reason = "\n".join(bonus_list)
@@ -478,7 +459,7 @@ class GameCog(commands.Cog):
         # Tìm người chơi tiếp theo
         next_player = self.get_next_player(game_state, message.author.id)
         
-        # Cập nhật game state
+        # Cập nhật game state (Reset wrong attempts here is handled by update_game_turn setting it to 0)
         await self.db.update_game_turn(
             channel_id=message.channel.id,
             new_word=word,
@@ -486,33 +467,16 @@ class GameCog(commands.Cog):
         )
         
         # Gửi thông báo (Gộp Chính xác + Nghĩa)
-        embed_title = f"{emojis.get_random_correct_emoji()} {word.upper()}"
-        if word_info and word_info.get('phonetic'):
-             embed_title += f" /{word_info['phonetic']}/"
-
-        description_lines = []
-        
-        # 1. Meaning
-        if meaning_vi:
-            description_lines.append(f"📖 **{meaning_vi}**")
-        elif word_info and word_info.get('definition'):
-            description_lines.append(f"� *{word_info['definition']}*")
-            
-        # 2. Player stats
-        stats_line = f"\n{message.author.mention} **+{points} điểm**"
-        if bonus_reason:
-            bonus_single = bonus_reason.replace('\n', ', ')
-            stats_line += f" • {bonus_single}"
-            
-        description_lines.append(stats_line)
-
-        embed = discord.Embed(
-            title=embed_title,
-            description="\n".join(description_lines),
-            color=config.COLOR_SUCCESS
+        embeds_list = embeds.create_rich_correct_answer_embed(
+            author=message.author,
+            word=word,
+            word_info=word_info,
+            meaning_vi=meaning_vi,
+            points=points,
+            bonus_reason=bonus_reason
         )
         
-        await message.channel.send(embed=embed)
+        await message.channel.send(embeds=embeds_list)
         
         # Check if bot challenge (solo mode)
         if game_state['is_bot_challenge']:
@@ -638,14 +602,16 @@ class GameCog(commands.Cog):
             if game_state['current_player_id'] != player_id:
                 return  # Đã chuyển lượt rồi
             
-            # Trừ điểm
+            # Trừ điểm timeout (-10)
             channel = self.bot.get_channel(channel_id)
             player = self.bot.get_user(player_id)
             
-            await self.db.add_points(player_id, game_state['guild_id'], config.POINTS_WRONG)
+            await self.db.add_points(player_id, game_state['guild_id'], config.POINTS_TIMEOUT)
             
             # Gửi thông báo timeout
             embed = embeds.create_timeout_embed(player.mention)
+            # Override description to show correct penalty
+            embed.description = f"{player.mention} {emojis.SNAIL} đã không trả lời kịp thời! (-{abs(config.POINTS_TIMEOUT)} điểm)"
             await channel.send(embed=embed)
             
             # Chuyển lượt
@@ -664,6 +630,57 @@ class GameCog(commands.Cog):
         except asyncio.CancelledError:
             # Task bị cancel (người chơi đã trả lời kịp)
             pass
+
+
+
+    async def handle_wrong_answer(self, message, game_state, word, reason):
+        """Xử lý trả lời sai"""
+        current_wrong = game_state.get('wrong_attempts', 0) + 1
+        
+        # Tính điểm trừ tích lũy: 2, 4, 6... (Mỗi lần sai -2)
+        # Hoặc đơn giản là mỗi lần sai trừ 2 điểm, user yêu cầu "trừ tối đa 10 điểm" cho 5 lần
+        # -> Nghĩa là lần 1 trừ 2, lần 2 trừ 2... tổng 5 lần là 10.
+        penalty = config.POINTS_WRONG # -2
+        
+        await self.db.add_points(message.author.id, message.guild.id, penalty)
+        await self.db.update_player_stats(message.author.id, message.guild.id, word, False)
+        
+        # Update wrong attempts count
+        await self.db.update_wrong_attempts(message.channel.id, current_wrong)
+        
+        # Check limit
+        if current_wrong >= config.MAX_WRONG_ATTEMPTS:
+            embed = discord.Embed(
+                title=f"{emojis.SKULL} Mất Lượt!",
+                description=f"{message.author.mention} đã trả lời sai quá {config.MAX_WRONG_ATTEMPTS} lần!\nTự động chuyển lượt.",
+                color=config.COLOR_ERROR
+            )
+            await message.channel.send(embed=embed)
+            
+            # Chuyển lượt
+            next_player = self.get_next_player(game_state, message.author.id)
+            
+            # Cancel timeout cũ
+            if message.channel.id in self.active_timeouts:
+                self.active_timeouts[message.channel.id].cancel()
+                
+            await self.db.update_game_turn(
+                channel_id=message.channel.id,
+                new_word=game_state['current_word'],
+                next_player_id=next_player.id
+            )
+            
+            await message.channel.send(f"Lượt tiếp theo: {next_player.mention}")
+            await self.start_turn_timeout(message.channel.id, next_player.id)
+        else:
+            # Chỉ báo sai và số lần còn lại
+            remaining = config.MAX_WRONG_ATTEMPTS - current_wrong
+            embed = embeds.create_wrong_answer_embed(
+                message.author.mention,
+                word,
+                f"{reason}\n⚠️ Bạn còn **{remaining}** lần thử. (Bị trừ {abs(penalty)} điểm)"
+            )
+            await message.channel.send(embed=embed)
 
 
 async def setup(bot: commands.Bot):

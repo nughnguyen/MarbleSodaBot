@@ -69,8 +69,9 @@ def create_turn_embed(current_word: str, player_mention: str, time_left: int) ->
     
     return embed
 
+
 def create_correct_answer_embed(player_mention: str, word: str, points: int, reason: str = "") -> discord.Embed:
-    """Tạo embed cho câu trả lời đúng"""
+    """Tạo embed cho câu trả lời đúng (Simple version)"""
     emoji = emojis.get_random_correct_emoji()
     
     embed = discord.Embed(
@@ -94,6 +95,117 @@ def create_correct_answer_embed(player_mention: str, word: str, points: int, rea
         )
     
     return embed
+
+def create_rich_correct_answer_embed(
+    author: discord.User, 
+    word: str, 
+    word_info: dict, 
+    meaning_vi: str, 
+    points: int, 
+    bonus_reason: str
+) -> List[discord.Embed]:
+    """Tạo bộ embed câu trả lời đúng theo style Discord Hook (2 embeds)"""
+    
+    embeds_list = []
+    
+    # === Embed 1: Word & Meaning ===
+    embed1 = discord.Embed(
+        title=f"{word.upper()}", # Title is the WORD (Big text)
+        color=config.COLOR_SUCCESS,
+        timestamp=datetime.utcnow()
+    )
+    
+    # Author Info (Change to "Chính xác")
+    embed1.set_author(
+        name=f"Chính xác! - {author.display_name}",
+        icon_url=author.display_avatar.url
+    )
+    
+    # Description Structure:
+    # 🇻🇳 Nghĩa:
+    # **`MEANING`**
+    
+    phonetic = ""
+    if word_info and word_info.get('phonetic'):
+        phonetic = f" /{word_info['phonetic']}/"
+        
+    desc_lines = []
+    # Line 1: Phonetic if exists (Word is already in Title)
+    if phonetic:
+        desc_lines.append(f"`{phonetic}`")
+    
+    # Line 2: Meaning
+    if meaning_vi:
+        desc_lines.append(f"\n🇻🇳 Nghĩa:\n**{meaning_vi}**")
+    
+    if word_info and word_info.get('definition'):
+        desc_lines.append(f"\n🇬🇧 Definition:\n*{word_info['definition']}*")
+        
+    embed1.description = "".join(desc_lines)
+    
+    # Add clickable link if audio exists
+    if word_info and word_info.get('audio_url'):
+        embed1.url = word_info['audio_url']
+        
+    embeds_list.append(embed1)
+    
+    # === Embed 2: Points & Bonuses ===
+    # Chỉ hiện nếu có điểm hoặc bonus
+    if points > 0:
+        embed2 = discord.Embed(
+            title=f"📈 Cộng điểm",
+            color=config.COLOR_SUCCESS,
+            timestamp=datetime.utcnow()
+        )
+        
+        # Field 1: Điểm cơ bản
+        # Tính ngược điểm cơ bản từ tổng (Total - Bonuses)
+        # Tuy nhiên logic ở game.py đã cộng hết vào points, nên ta chỉ hiển thị flow
+        
+        # Chúng ta sẽ hiển thị các thành phần điểm
+        # 1. Base Logic (giả sử points hiện tại là tổng)
+        # Parse bonus reasons
+        bonuses = []
+        if bonus_reason:
+            if isinstance(bonus_reason, list):
+                 bonuses = bonus_reason
+            else:
+                 bonuses = [b.strip() for b in bonus_reason.split('\n') if b.strip()]
+        
+        # Để đẹp, ta hiển thị:
+        # Field 1: Kết quả nối từ (+Core)
+        # Field 2...n: Các bonus
+        # Field Last: TỔNG
+        
+        # Tuy nhiên user format là list các field
+        # Ta sẽ add từng bonus thành 1 field
+        
+        embed2.add_field(
+            name="Từ hợp lệ",
+            value=f"+{config.POINTS_CORRECT}",
+            inline=True
+        )
+        
+        for bonus in bonuses:
+            # Bonus strings text like "Running Fast (+2)"
+            # Tách text và điểm nếu có thể, hoặc để nguyên
+            embed2.add_field(
+                name="Bonus",
+                value=bonus,
+                inline=True
+            )
+            
+        # Tổng kết (Nếu có bonus mới hiện tổng, ko thì thôi cho đỡ rác, nhưng user muốn structure 2)
+        if bonuses:
+            embed2.add_field(
+                name="Tổng cộng",
+                value=f"**+{points}**",
+                inline=False
+            )
+            
+        embeds_list.append(embed2)
+    
+    return embeds_list
 
 def create_wrong_answer_embed(player_mention: str, word: str, reason: str) -> discord.Embed:
     """Tạo embed cho câu trả lời sai"""

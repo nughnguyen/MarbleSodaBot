@@ -27,15 +27,21 @@ class DatabaseManager:
                     turn_count INTEGER DEFAULT 0,
                     started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     is_bot_challenge INTEGER DEFAULT 0,
-                    turn_start_time REAL DEFAULT 0
+                    turn_start_time REAL DEFAULT 0,
+                    wrong_attempts INTEGER DEFAULT 0
                 )
             """)
             
-            # Migration check for existing tables (add turn_start_time if missing)
+            # Migration check for existing tables (add new columns if missing)
             try:
                 await db.execute("ALTER TABLE game_states ADD COLUMN turn_start_time REAL DEFAULT 0")
             except Exception:
                 pass  # Column likely exists
+                
+            try:
+                await db.execute("ALTER TABLE game_states ADD COLUMN wrong_attempts INTEGER DEFAULT 0")
+            except Exception:
+                pass
             
             # Bảng player stats (thống kê người chơi)
             await db.execute("""
@@ -81,11 +87,11 @@ class DatabaseManager:
             await db.execute("""
                 INSERT OR REPLACE INTO game_states 
                 (channel_id, guild_id, language, current_word, current_player_id, 
-                 used_words, players, turn_count, is_bot_challenge, turn_start_time)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 used_words, players, turn_count, is_bot_challenge, turn_start_time, wrong_attempts)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (channel_id, guild_id, language, first_word, first_player_id,
                   json.dumps([first_word.lower()]), json.dumps([first_player_id]), 
-                  0, 1 if is_bot_challenge else 0, time.time()))
+                  0, 1 if is_bot_challenge else 0, time.time(), 0))
             await db.commit()
     
     async def get_game_state(self, channel_id: int) -> Optional[Dict]:
@@ -101,8 +107,9 @@ class DatabaseManager:
                     return None
                 
                 # Check row length to handle schema changes gracefully if select * is used
-                # Current schema has 11 columns
+                # Current schema has 12 columns
                 turn_start_time = row[10] if len(row) > 10 else 0
+                wrong_attempts = row[11] if len(row) > 11 else 0
                 
                 return {
                     'channel_id': row[0],
@@ -115,7 +122,8 @@ class DatabaseManager:
                     'turn_count': row[7],
                     'started_at': row[8],
                     'is_bot_challenge': bool(row[9]),
-                    'turn_start_time': turn_start_time
+                    'turn_start_time': turn_start_time,
+                    'wrong_attempts': wrong_attempts
                 }
     
     async def update_game_turn(self, channel_id: int, new_word: str, next_player_id: int):
@@ -143,10 +151,21 @@ class DatabaseManager:
                 used_words = ?,
                 players = ?,
                 turn_count = turn_count + 1,
-                turn_start_time = ?
+                turn_start_time = ?,
+                wrong_attempts = 0
                 WHERE channel_id = ?
             """, (new_word, next_player_id, json.dumps(used_words), 
                   json.dumps(players), time.time(), channel_id))
+            await db.commit()
+            
+    async def update_wrong_attempts(self, channel_id: int, attempts: int):
+        """Cập nhật số lần trả lời sai"""
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute("""
+                UPDATE game_states 
+                SET wrong_attempts = ?
+                WHERE channel_id = ?
+            """, (attempts, channel_id))
             await db.commit()
     
     async def delete_game(self, channel_id: int):

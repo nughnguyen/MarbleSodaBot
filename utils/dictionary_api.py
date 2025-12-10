@@ -4,10 +4,17 @@ Hỗ trợ nhiều nguồn API và fallback strategy
 """
 import aiohttp
 import asyncio
+import re
 from typing import Optional, Dict, List
 import logging
 
 logger = logging.getLogger(__name__)
+
+def clean_html(raw_html: str) -> str:
+    """Remove HTML tags from string"""
+    cleanr = re.compile('<.*?>')
+    cleantext = re.sub(cleanr, '', raw_html)
+    return ' '.join(cleantext.split())
 
 
 class DictionaryAPI:
@@ -118,9 +125,8 @@ class CambridgeDictionaryAPI(DictionaryAPI):
                             def_text_end = def_section.find('</div>')
                             definition = def_section[def_text_start:def_text_end].strip()
                             # Clean HTML tags
-                            definition = definition.replace('<', ' ').replace('>', ' ')
-                            definition = ' '.join(definition.split())[:150]
-                            word_info['definition'] = definition
+                            definition = clean_html(definition)
+                            word_info['definition'] = definition[:150]
                     except:
                         pass
                     
@@ -182,7 +188,7 @@ class CambridgeDictionaryAPI(DictionaryAPI):
                         end_idx = text.find('</span>', content_start)
                         if end_idx > content_start:
                             meaning = text[content_start:end_idx].strip()
-                            return meaning
+                            return clean_html(meaning)
                     
                     return None
                 else:
