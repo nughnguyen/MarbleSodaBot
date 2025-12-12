@@ -71,7 +71,9 @@ class WordChainBot(commands.Bot):
         cogs = [
             'cogs.game',
             'cogs.leaderboard',
-            'cogs.admin'
+            'cogs.admin',
+            'cogs.vua_tieng_viet',
+            'cogs.lobby'
         ]
         
         for cog in cogs:

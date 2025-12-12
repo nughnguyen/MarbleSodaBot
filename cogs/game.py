@@ -52,21 +52,19 @@ class GameCog(commands.Cog):
             return random.choice(list(validator.word_list))
         return "start" if language == "en" else "bat dau"
     
-    @app_commands.command(name="start-wordchain", description="🎮 Bắt đầu trò chơi nối từ!")
-    @app_commands.describe(
-        language="Chọn ngôn ngữ: vi (Tiếng Việt) hoặc en (English)"
-    )
-    @app_commands.choices(language=[
-        app_commands.Choice(name="🇻🇳 Tiếng Việt", value="vi"),
-        app_commands.Choice(name="🇬🇧 English", value="en")
-    ])
     async def start_wordchain(
         self, 
         interaction: discord.Interaction,
-        language: app_commands.Choice[str] = None
+        language: str = None
     ):
         """Bắt đầu game với Button UI"""
-        lang = language.value if language else config.DEFAULT_LANGUAGE
+        # Handle if language is passed as Choice object (legacy support or if re-added) or string
+        if hasattr(language, 'value'):
+            lang = language.value
+        elif isinstance(language, str):
+            lang = language
+        else:
+            lang = config.DEFAULT_LANGUAGE
         
         if await self.db.is_game_active(interaction.channel_id):
             await interaction.response.send_message(
@@ -200,7 +198,6 @@ class GameCog(commands.Cog):
         await self.start_turn_timeout(channel.id, first_player_id)
 
     
-    @app_commands.command(name="stop-wordchain", description="🛑 Kết thúc game hiện tại")
     async def stop_wordchain(self, interaction: discord.Interaction):
         """Kết thúc game"""
         # Kiểm tra có game không
@@ -274,7 +271,7 @@ class GameCog(commands.Cog):
         embed = embeds.create_status_embed(status_data)
         await interaction.response.send_message(embed=embed)
     
-    @app_commands.command(name="hint", description="💡 Nhận gợi ý (tốn 10 điểm)")
+    @app_commands.command(name="hint", description="💡 Nhận gợi ý (tốn 10 coinz)")
     async def hint(self, interaction: discord.Interaction):
         """Gợi ý chữ cái tiếp theo"""
         game_state = await self.db.get_game_state(interaction.channel_id)
@@ -290,7 +287,7 @@ class GameCog(commands.Cog):
         points = await self.db.get_player_points(interaction.user.id, interaction.guild_id)
         if points < config.HINT_COST:
             await interaction.response.send_message(
-                f"{emojis.WRONG} Bạn không đủ điểm! Cần {config.HINT_COST} điểm, bạn chỉ có {points} điểm.",
+                f"{emojis.WRONG} Bạn không đủ coinz! Cần {config.HINT_COST} coinz, bạn chỉ có {points} coinz.",
                 ephemeral=True
             )
             return
@@ -306,9 +303,9 @@ class GameCog(commands.Cog):
         embed = embeds.create_hint_embed(hint_char, config.HINT_COST)
         await interaction.response.send_message(embed=embed, ephemeral=True)
     
-    @app_commands.command(name="pass", description="⏭️ Bỏ lượt (tốn 20 điểm)")
+    @app_commands.command(name="pass", description="⏭️ Bỏ lượt (tốn 20 coinz)")
     async def pass_turn(self, interaction: discord.Interaction):
-        """Bỏ lượt không bị trừ điểm timeout"""
+        """Bỏ lượt không bị trừ coinz timeout"""
         game_state = await self.db.get_game_state(interaction.channel_id)
         
         if not game_state:
@@ -330,7 +327,7 @@ class GameCog(commands.Cog):
         points = await self.db.get_player_points(interaction.user.id, interaction.guild_id)
         if points < config.PASS_COST:
             await interaction.response.send_message(
-                f"{emojis.WRONG} Bạn không đủ điểm! Cần {config.PASS_COST} điểm, bạn chỉ có {points} điểm.",
+                f"{emojis.WRONG} Bạn không đủ coinz! Cần {config.PASS_COST} coinz, bạn chỉ có {points} coinz.",
                 ephemeral=True
             )
             return
@@ -355,7 +352,7 @@ class GameCog(commands.Cog):
         
         # Thông báo
         await interaction.response.send_message(
-            f"{emojis.PASS} {interaction.user.mention} đã bỏ lượt! (-{config.PASS_COST} điểm)\n"
+            f"{emojis.PASS} {interaction.user.mention} đã bỏ lượt! (-{config.PASS_COST} coinz)\n"
             f"Lượt tiếp theo: {next_player.mention}"
         )
         
@@ -602,7 +599,7 @@ class GameCog(commands.Cog):
             if game_state['current_player_id'] != player_id:
                 return  # Đã chuyển lượt rồi
             
-            # Trừ điểm timeout (-10)
+            # Trừ coinz timeout (-10)
             channel = self.bot.get_channel(channel_id)
             player = self.bot.get_user(player_id)
             
@@ -611,7 +608,7 @@ class GameCog(commands.Cog):
             # Gửi thông báo timeout
             embed = embeds.create_timeout_embed(player.mention)
             # Override description to show correct penalty
-            embed.description = f"{player.mention} {emojis.SNAIL} đã không trả lời kịp thời! (-{abs(config.POINTS_TIMEOUT)} điểm)"
+            embed.description = f"{player.mention} {emojis.SNAIL} đã không trả lời kịp thời! (-{abs(config.POINTS_TIMEOUT)} coinz)"
             await channel.send(embed=embed)
             
             # Chuyển lượt
@@ -637,8 +634,8 @@ class GameCog(commands.Cog):
         """Xử lý trả lời sai"""
         current_wrong = game_state.get('wrong_attempts', 0) + 1
         
-        # Tính điểm trừ tích lũy: 2, 4, 6... (Mỗi lần sai -2)
-        # Hoặc đơn giản là mỗi lần sai trừ 2 điểm, user yêu cầu "trừ tối đa 10 điểm" cho 5 lần
+        # Tính coinz trừ tích lũy: 2, 4, 6... (Mỗi lần sai -2)
+        # Hoặc đơn giản là mỗi lần sai trừ 2 coinz, user yêu cầu "trừ tối đa 10 coinz" cho 5 lần
         # -> Nghĩa là lần 1 trừ 2, lần 2 trừ 2... tổng 5 lần là 10.
         penalty = config.POINTS_WRONG # -2
         
@@ -678,7 +675,7 @@ class GameCog(commands.Cog):
             embed = embeds.create_wrong_answer_embed(
                 message.author.mention,
                 word,
-                f"{reason}\n⚠️ Bạn còn **{remaining}** lần thử. (Bị trừ {abs(penalty)} điểm)"
+                f"{reason}\n⚠️ Bạn còn **{remaining}** lần thử. (Bị trừ {abs(penalty)} coinz)"
             )
             await message.channel.send(embed=embed)
 

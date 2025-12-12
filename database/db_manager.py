@@ -75,7 +75,38 @@ class DatabaseManager:
                 )
             """)
             
+            # Channel Configs
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS channel_configs (
+                    channel_id INTEGER PRIMARY KEY,
+                    guild_id INTEGER NOT NULL,
+                    game_type TEXT NOT NULL
+                )
+            """)
+            
             await db.commit()
+            
+            # Migrate points to global (guild_id = 0)
+            await self.migrate_global_points(db)
+
+    async def migrate_global_points(self, db):
+        """Chuyển đổi điểm sang hệ thống global (guild_id=0)"""
+        # Check specific user to see if migration needed or just run it idempotently?
+        # Aggregating points to guild_id=0
+        await db.execute("""
+            INSERT INTO player_stats (user_id, guild_id, total_points)
+            SELECT user_id, 0, SUM(total_points)
+            FROM player_stats
+            WHERE guild_id != 0 AND total_points > 0
+            GROUP BY user_id
+            ON CONFLICT(user_id, guild_id) DO UPDATE SET
+                total_points = total_points + excluded.total_points
+        """)
+        
+        # Reset local points to 0 to avoid double counting if we run this again? 
+        # Actually safer to just set them to 0.
+        await db.execute("UPDATE player_stats SET total_points = 0 WHERE guild_id != 0")
+        await db.commit()
     
     # ===== GAME STATE METHODS =====
     
@@ -182,14 +213,14 @@ class DatabaseManager:
     # ===== PLAYER STATS METHODS =====
     
     async def add_points(self, user_id: int, guild_id: int, points: int):
-        """Thêm điểm cho người chơi"""
+        """Thêm điểm cho người chơi (Global Points - Guild ID 0)"""
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute("""
                 INSERT INTO player_stats (user_id, guild_id, total_points)
-                VALUES (?, ?, ?)
+                VALUES (?, 0, ?)
                 ON CONFLICT(user_id, guild_id) DO UPDATE SET
                     total_points = total_points + ?
-            """, (user_id, guild_id, points, points))
+            """, (user_id, points, points))
             await db.commit()
     
     async def update_player_stats(self, user_id: int, guild_id: int, 
@@ -223,37 +254,72 @@ class DatabaseManager:
             await db.commit()
     
     async def get_player_points(self, user_id: int, guild_id: int) -> int:
-        """Lấy điểm của người chơi"""
+        """Lấy điểm của người chơi (Global Points - Guild ID 0)"""
         async with aiosqlite.connect(self.db_path) as db:
             async with db.execute(
-                "SELECT total_points FROM player_stats WHERE user_id = ? AND guild_id = ?",
-                (user_id, guild_id)
+                "SELECT total_points FROM player_stats WHERE user_id = ? AND guild_id = 0",
+                (user_id,)
             ) as cursor:
                 row = await cursor.fetchone()
                 return row[0] if row else 0
     
-    async def get_leaderboard(self, guild_id: int, limit: int = 10) -> List[Dict]:
-        """Lấy bảng xếp hạng"""
+    async def get_leaderboard(self, member_ids: List[int], limit: int = 10) -> List[Dict]:
+        """Lấy bảng xếp hạng top tỷ phú trong danh sách user_id được cung cấp (global points)"""
+        if not member_ids:
+            return []
+            
+        # Handle large lists by chunks to avoid SQL variable limit if needed, 
+        # but for simplicity assuming server size < SQLITE_MAX_VARIABLE_NUMBER (default 999-32k)
+        # If member_ids is huge, we make a formatted string of placeholders
+        placeholders = ','.join('?' for _ in member_ids)
+        
+        # Optimization: if member_ids is huge (e.g > 2000), this query string building is heavy.
+        # But for typical discord bot use cases (fetching top 10 from specific guild), it's acceptable.
+        
+        query = f"""
+            SELECT user_id, total_points, games_played, correct_words, longest_word
+            FROM player_stats
+            WHERE guild_id = 0 AND user_id IN ({placeholders})
+            ORDER BY total_points DESC
+            LIMIT ?
+        """
+        
+        # Args: list of ids + limit
+        args = list(member_ids) + [limit]
+        
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute("""
-                SELECT user_id, total_points, games_played, correct_words, longest_word
-                FROM player_stats
-                WHERE guild_id = ?
-                ORDER BY total_points DESC
-                LIMIT ?
-            """, (guild_id, limit)) as cursor:
-                rows = await cursor.fetchall()
-                
-                return [
-                    {
-                        'user_id': row[0],
-                        'total_points': row[1],
-                        'games_played': row[2],
-                        'correct_words': row[3],
-                        'longest_word': row[4]
-                    }
-                    for row in rows
-                ]
+            try:
+                async with db.execute(query, args) as cursor:
+                    rows = await cursor.fetchall()
+            except Exception as e:
+                # If too many vars, fall back to fetching all global top and filtering in python
+                print(f"⚠️ SQL Limit hit or error: {e}. Falling back to python filtering.")
+                async with db.execute("""
+                    SELECT user_id, total_points, games_played, correct_words, longest_word
+                    FROM player_stats
+                    WHERE guild_id = 0
+                    ORDER BY total_points DESC
+                """) as cursor:
+                    all_rows = await cursor.fetchall()
+                    
+                member_set = set(member_ids)
+                rows = []
+                for row in all_rows:
+                    if row[0] in member_set:
+                        rows.append(row)
+                        if len(rows) >= limit:
+                            break
+            
+            return [
+                {
+                    'user_id': row[0],
+                    'total_points': row[1],
+                    'games_played': row[2],
+                    'correct_words': row[3],
+                    'longest_word': row[4]
+                }
+                for row in rows
+            ]
     
     # ===== GAME HISTORY METHODS =====
     
@@ -268,3 +334,33 @@ class DatabaseManager:
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """, (channel_id, guild_id, language, winner_id, total_turns, total_words, started_at))
             await db.commit()
+
+    # ===== CHANNEL CONFIG METHODS =====
+    
+    async def set_channel_config(self, channel_id: int, guild_id: int, game_type: str):
+        """Cài đặt game mặc định cho channel"""
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute("""
+                INSERT OR REPLACE INTO channel_configs (channel_id, guild_id, game_type)
+                VALUES (?, ?, ?)
+            """, (channel_id, guild_id, game_type))
+            await db.commit()
+            
+    async def get_channel_config(self, channel_id: int) -> Optional[str]:
+        """Lấy game_type mặc định của channel"""
+        async with aiosqlite.connect(self.db_path) as db:
+             # Ensure table exists first (lazy check)
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS channel_configs (
+                    channel_id INTEGER PRIMARY KEY,
+                    guild_id INTEGER NOT NULL,
+                    game_type TEXT NOT NULL
+                )
+            """)
+            
+            async with db.execute(
+                "SELECT game_type FROM channel_configs WHERE channel_id = ?",
+                (channel_id,)
+            ) as cursor:
+                row = await cursor.fetchone()
+                return row[0] if row else None

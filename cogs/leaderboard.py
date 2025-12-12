@@ -17,9 +17,17 @@ class LeaderboardCog(commands.Cog):
     
     @app_commands.command(name="leaderboard", description="🏆 Xem bảng xếp hạng server")
     async def leaderboard(self, interaction: discord.Interaction):
-        """Hiển thị top 10 người chơi"""
+        """Hiển thị top 10 người chơi trong server này"""
+        # Get list of member IDs in the current guild
+        if not interaction.guild:
+            await interaction.response.send_message("❌ Lệnh này chỉ dùng được trong server!", ephemeral=True)
+            return
+            
+        # Collect member IDs. Note: this relies on intents.members being enabled and cache populated.
+        member_ids = [member.id for member in interaction.guild.members]
+        
         # Lấy dữ liệu leaderboard
-        leaderboard_data = await self.db.get_leaderboard(interaction.guild_id, limit=10)
+        leaderboard_data = await self.db.get_leaderboard(member_ids=member_ids, limit=10)
         
         # Tạo embed
         embed = embeds.create_leaderboard_embed(
@@ -67,8 +75,8 @@ class LeaderboardCog(commands.Cog):
         embed.set_thumbnail(url=target_user.display_avatar.url)
         
         embed.add_field(
-            name="🏆 Tổng Điểm",
-            value=f"**{total_points}** điểm",
+            name="🏆 Tổng Coinz",
+            value=f"**{total_points:,}** coinz",
             inline=True
         )
         

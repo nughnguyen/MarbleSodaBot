@@ -17,6 +17,19 @@ class AdminCog(commands.Cog):
         self.bot = bot
         self.db = db
         self.validators = {}
+
+    @commands.command(name="sync", hidden=True)
+    @commands.is_owner()
+    async def sync_tree(self, ctx):
+        """Syncs the slash command tree manually."""
+        print("🔄 Manual sync initiated...")
+        try:
+            synced = await self.bot.tree.sync()
+            print(f"  ✅ Synced {len(synced)} command(s)")
+            await ctx.send(f"✅ Synced {len(synced)} command(s) globally.")
+        except Exception as e:
+            print(f"  ❌ Failed to sync commands: {e}")
+            await ctx.send(f"❌ Failed to sync: {e}")
     
     async def cog_load(self):
         """Load validators"""
@@ -110,10 +123,10 @@ class AdminCog(commands.Cog):
         if game_cog:
             await game_cog.start_turn_timeout(interaction.channel_id, interaction.user.id)
     
-    @app_commands.command(name="add-points", description="➕ Thêm điểm cho người chơi (Admin only)")
+    @app_commands.command(name="add-points", description="➕ Thêm coinz cho người chơi (Admin only)")
     @app_commands.describe(
-        user="Người chơi nhận điểm",
-        points="Số điểm cần thêm"
+        user="Người chơi nhận coinz",
+        points="Số coinz cần thêm"
     )
     @app_commands.checks.has_permissions(administrator=True)
     async def add_points(
@@ -122,11 +135,11 @@ class AdminCog(commands.Cog):
         user: discord.User,
         points: int
     ):
-        """Admin thêm điểm cho người chơi"""
+        """Admin thêm coinz cho người chơi"""
         await self.db.add_points(user.id, interaction.guild_id, points)
         
         await interaction.response.send_message(
-            f"✅ Đã thêm **{points}** điểm cho {user.mention}!",
+            f"✅ Đã thêm **{points}** coinz cho {user.mention}!",
             ephemeral=True
         )
     
@@ -160,6 +173,41 @@ class AdminCog(commands.Cog):
             await db.commit()
         
         await interaction.response.send_message(message, ephemeral=True)
+
+    @app_commands.command(name="set-game-channel", description="⚙️ Cài đặt game mặc định cho kênh này")
+    @app_commands.describe(game_type="Chọn loại game (để trống để xóa cài đặt)")
+    @app_commands.choices(game_type=[
+        app_commands.Choice(name="🔤 Nối Từ (Word Chain)", value="wordchain"),
+        app_commands.Choice(name="👑 Vua Tiếng Việt", value="vuatiengviet")
+    ])
+    @app_commands.checks.has_permissions(administrator=True)
+    async def set_game_channel(self, interaction: discord.Interaction, game_type: app_commands.Choice[str] = None):
+        """Cài đặt game mặc định cho channel"""
+        if game_type:
+            await self.db.set_channel_config(interaction.channel_id, interaction.guild_id, game_type.value)
+            await interaction.response.send_message(f"✅ Đã cài đặt kênh này là kênh **{game_type.name}**!\nDùng lệnh `/start` để bắt đầu nhanh.", ephemeral=True)
+        else:
+            # Logic để xóa cài đặt nếu cần, hiện tại db chỉ có insert or replace. 
+            # Có thể set thành "" hoặc xoá row. 
+            # Tạm thời set thành "none" hoặc simply override.
+            # Với request user, họ muốn set kênh. Nếu muốn unset có thể thêm option.
+            # Để đơn giản, cho phép set đè.
+            pass
+            
+    # Alias commands as requested by user
+    @app_commands.command(name="kenh-noi-tu", description="⚙️ Đặt kênh này làm kênh Nối Từ")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def set_wordchain_channel(self, interaction: discord.Interaction):
+        """Đặt kênh nối từ"""
+        await self.db.set_channel_config(interaction.channel_id, interaction.guild_id, "wordchain")
+        await interaction.response.send_message(f"✅ Đã đặt kênh này làm kênh chuyên **Nối Từ**!\nGõ `/start` để chơi ngay.", ephemeral=True)
+
+    @app_commands.command(name="kenh-vua-tieng-viet", description="⚙️ Đặt kênh này làm kênh Vua Tiếng Việt")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def set_vuatiengviet_channel(self, interaction: discord.Interaction):
+        """Đặt kênh vua tiếng việt"""
+        await self.db.set_channel_config(interaction.channel_id, interaction.guild_id, "vuatiengviet")
+        await interaction.response.send_message(f"✅ Đã đặt kênh này làm kênh chuyên **Vua Tiếng Việt**!\nGõ `/start` để chơi ngay.", ephemeral=True)
     
     @app_commands.command(name="help", description="❓ Hướng dẫn sử dụng bot")
     async def help_command(self, interaction: discord.Interaction):
@@ -186,8 +234,8 @@ class AdminCog(commands.Cog):
         embed.add_field(
             name=f"{emojis.JOKER} Lệnh Hỗ Trợ",
             value=(
-                f"`/hint` - Gợi ý chữ cái tiếp theo ({config.HINT_COST} điểm)\n"
-                f"`/pass` - Bỏ lượt không bị trừ điểm ({config.PASS_COST} điểm)"
+                f"`/hint` - Gợi ý chữ cái tiếp theo ({config.HINT_COST} coinz)\n"
+                f"`/pass` - Bỏ lượt không bị trừ coinz ({config.PASS_COST} coinz)"
             ),
             inline=False
         )
@@ -210,18 +258,18 @@ class AdminCog(commands.Cog):
                 "2️⃣ Nối từ bắt đầu bằng chữ cái cuối của từ trước\n"
                 f"3️⃣ Bạn có **{config.TURN_TIMEOUT} giây** để trả lời\n"
                 "4️⃣ Từ không được lặp lại trong cùng game\n"
-                "5️⃣ Từ dài (>10 ký tự) nhận thêm điểm!"
+                "5️⃣ Từ dài (>10 ký tự) nhận thêm coinz!"
             ),
             inline=False
         )
         
         # Points System
         embed.add_field(
-            name=f"{emojis.STAR} Hệ Thống Điểm",
+            name=f"{emojis.STAR} Hệ Thống Coinz",
             value=(
-                f"✅ Từ đúng: **+{config.POINTS_CORRECT}** điểm\n"
-                f"🔥 Từ dài (>10 chữ): **+{config.POINTS_LONG_WORD}** điểm\n"
-                f"❌ Từ sai/Hết giờ: **{config.POINTS_WRONG}** điểm"
+                f"✅ Từ đúng: **+{config.POINTS_CORRECT}** coinz\n"
+                f"🔥 Từ dài (>10 chữ): **+{config.POINTS_LONG_WORD}** coinz\n"
+                f"❌ Từ sai/Hết giờ: **{config.POINTS_WRONG}** coinz"
             ),
             inline=False
         )

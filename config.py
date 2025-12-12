@@ -60,3 +60,7 @@ CACHE_SIZE = int(os.getenv('CACHE_SIZE', 1000))
 
 # Languages
 SUPPORTED_LANGUAGES = ['vi', 'en']
+
+# Vua Tieng Viet Game
+POINTS_VUA_TIENG_VIET = 5000
+DATA_VUA_TIENG_VIET_PATH = 'data/vua_tieng_viet.json'

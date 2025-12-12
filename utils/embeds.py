@@ -3,7 +3,7 @@ Discord Embed utilities for beautiful messages
 Tạo các embeds đẹp mắt và rực rỡ cho bot
 """
 import discord
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import List, Dict
 import config
 from utils import emojis
@@ -16,7 +16,7 @@ def create_game_start_embed(language: str, first_word: str, player_mention: str)
         title=f"{emojis.START} Trò Chơi Nối Từ Bắt Đầu! {emojis.START}",
         description=f"**Ngôn ngữ:** {lang_flag} {'Tiếng Việt' if language == 'vi' else 'English'}",
         color=config.COLOR_SUCCESS,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(timezone(timedelta(hours=7)))
     )
     
     embed.add_field(
@@ -46,7 +46,7 @@ def create_turn_embed(current_word: str, player_mention: str, time_left: int) ->
     embed = discord.Embed(
         title=f"{emojis.THINKING} Lượt Tiếp Theo",
         color=config.COLOR_INFO,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(timezone(timedelta(hours=7)))
     )
     
     embed.add_field(
@@ -78,12 +78,12 @@ def create_correct_answer_embed(player_mention: str, word: str, points: int, rea
         title=f"{emoji} Chính Xác!",
         description=f"{player_mention} đã nối từ **{word.upper()}**",
         color=config.COLOR_SUCCESS,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(timezone(timedelta(hours=7)))
     )
     
     embed.add_field(
-        name=f"{emojis.STAR} Điểm Nhận Được",
-        value=f"+{points} điểm",
+        name=f"{emojis.STAR} Coinz Nhận Được",
+        value=f"+{points:,} coinz",
         inline=True
     )
     
@@ -112,7 +112,7 @@ def create_rich_correct_answer_embed(
     embed1 = discord.Embed(
         title=f"{word.upper()}", # Title is the WORD (Big text)
         color=config.COLOR_SUCCESS,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(timezone(timedelta(hours=7)))
     )
     
     # Author Info (Change to "Chính xác")
@@ -153,9 +153,9 @@ def create_rich_correct_answer_embed(
     # Chỉ hiện nếu có điểm hoặc bonus
     if points > 0:
         embed2 = discord.Embed(
-            title=f"📈 Cộng điểm",
+            title=f"📈 Cộng Coinz",
             color=config.COLOR_SUCCESS,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone(timedelta(hours=7)))
         )
         
         # Field 1: Điểm cơ bản
@@ -182,7 +182,7 @@ def create_rich_correct_answer_embed(
         
         embed2.add_field(
             name="Từ hợp lệ",
-            value=f"+{config.POINTS_CORRECT}",
+            value=f"+{config.POINTS_CORRECT:,}",
             inline=True
         )
         
@@ -199,7 +199,7 @@ def create_rich_correct_answer_embed(
         if bonuses:
             embed2.add_field(
                 name="Tổng cộng",
-                value=f"**+{points}**",
+                value=f"**+{points:,}**",
                 inline=False
             )
             
@@ -215,7 +215,7 @@ def create_wrong_answer_embed(player_mention: str, word: str, reason: str) -> di
         title=f"{emoji} Sai Rồi!",
         description=f"{player_mention} - Từ **{word}** không hợp lệ",
         color=config.COLOR_ERROR,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(timezone(timedelta(hours=7)))
     )
     
     embed.add_field(
@@ -225,8 +225,8 @@ def create_wrong_answer_embed(player_mention: str, word: str, reason: str) -> di
     )
     
     embed.add_field(
-        name="Điểm Bị Trừ",
-        value=f"{config.POINTS_WRONG} điểm",
+        name="Coinz Bị Trừ",
+        value=f"{config.POINTS_WRONG:,} coinz",
         inline=True
     )
     
@@ -238,12 +238,12 @@ def create_timeout_embed(player_mention: str) -> discord.Embed:
         title=f"{emojis.TIMEOUT} Hết Giờ!",
         description=f"{player_mention} {emojis.SNAIL} đã không trả lời kịp thời!",
         color=config.COLOR_WARNING,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(timezone(timedelta(hours=7)))
     )
     
     embed.add_field(
-        name="Điểm Bị Trừ",
-        value=f"{config.POINTS_WRONG} điểm",
+        name="Coinz Bị Trừ",
+        value=f"{config.POINTS_WRONG:,} coinz",
         inline=True
     )
     
@@ -255,13 +255,13 @@ def create_game_end_embed(winner_data: Dict, total_turns: int, used_words_count:
         title=f"{emojis.END} Trò Chơi Kết Thúc! {emojis.CELEBRATION}",
         description=f"Tổng số lượt chơi: **{total_turns}**\nTổng số từ đã dùng: **{used_words_count}**",
         color=config.COLOR_GOLD,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(timezone(timedelta(hours=7)))
     )
     
     if winner_data:
         embed.add_field(
             name=f"{emojis.CROWN} Người Chiến Thắng",
-            value=f"<@{winner_data['user_id']}> với **{winner_data['points']} điểm**!",
+            value=f"<@{winner_data['user_id']}> với **{winner_data['points']:,} coinz**!",
             inline=False
         )
     
@@ -272,16 +272,16 @@ def create_game_end_embed(winner_data: Dict, total_turns: int, used_words_count:
 def create_leaderboard_embed(leaderboard_data: List[Dict], server_name: str) -> discord.Embed:
     """Tạo embed cho bảng xếp hạng"""
     embed = discord.Embed(
-        title=f"{emojis.TROPHY} Bảng Xếp Hạng - {server_name}",
-        description=f"{emojis.STAR} Top 10 Người Chơi Xuất Sắc Nhất",
+        title=f"{emojis.TROPHY} Bảng Xếp Hạng Top 10 Tỷ Phú - {server_name}",
+        description=f"{emojis.STAR} Danh sách những đại gia giàu nhất server",
         color=config.COLOR_GOLD,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(timezone(timedelta(hours=7)))
     )
     
     if not leaderboard_data:
         embed.add_field(
             name="Trống",
-            value="Chưa có người chơi nào!",
+            value="Chưa có tỷ phú nào!",
             inline=False
         )
         return embed
@@ -289,15 +289,15 @@ def create_leaderboard_embed(leaderboard_data: List[Dict], server_name: str) -> 
     leaderboard_text = ""
     for idx, player in enumerate(leaderboard_data, 1):
         rank_emoji = emojis.get_rank_emoji(idx)
-        leaderboard_text += f"{rank_emoji} **#{idx}** <@{player['user_id']}> - {player['total_points']} điểm\n"
+        leaderboard_text += f"{rank_emoji} **#{idx}** <@{player['user_id']}> - **{player['total_points']:,}** coinz\n"
     
     embed.add_field(
-        name="Xếp Hạng",
+        name="Danh Sách Tỷ Phú",
         value=leaderboard_text,
         inline=False
     )
     
-    embed.set_footer(text="Tiếp tục chơi để leo hạng!")
+    embed.set_footer(text="Cày game để leo top tỷ phú!")
     
     return embed
 
@@ -307,12 +307,12 @@ def create_hint_embed(hint: str, cost: int) -> discord.Embed:
         title=f"{emojis.HINT} Gợi Ý",
         description=f"Từ tiếp theo bắt đầu bằng: **{hint}**",
         color=config.COLOR_INFO,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(timezone(timedelta(hours=7)))
     )
     
     embed.add_field(
         name="Chi Phí",
-        value=f"-{cost} điểm",
+        value=f"-{cost:,} coinz",
         inline=True
     )
     
@@ -323,7 +323,7 @@ def create_status_embed(game_state: Dict) -> discord.Embed:
     embed = discord.Embed(
         title=f"{emojis.SCROLL} Trạng Thái Game",
         color=config.COLOR_INFO,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(timezone(timedelta(hours=7)))
     )
     
     embed.add_field(
@@ -358,7 +358,7 @@ def create_bot_challenge_embed(difficulty: str) -> discord.Embed:
         title=f"{emojis.ROBOT} {emojis.VS} Thách Đấu Bot!",
         description=f"Bạn đang thách đấu bot ở chế độ **{difficulty.upper()}**!",
         color=config.COLOR_WARNING,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(timezone(timedelta(hours=7)))
     )
     
     embed.add_field(
