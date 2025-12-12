@@ -17,7 +17,7 @@ class LobbyCog(commands.Cog):
         if not game_type:
              await interaction.response.send_message(
                  "❓ Kênh này chưa được cài đặt game mặc định!\n"
-                 "Admin hãy dùng lệnh `/kenh-noi-tu` hoặc `/kenh-vua-tieng-viet` để cài đặt.", 
+                 "Admin hãy dùng lệnh `/kenh-(ten-game)` để cài đặt.", 
                  ephemeral=True
              )
              return
@@ -34,7 +34,7 @@ class LobbyCog(commands.Cog):
             # Call Vua Tieng Viet start command
             vtv_cog = self.bot.get_cog("VuaTiengVietCog")
             if vtv_cog:
-                 await vtv_cog.start_game.callback(vtv_cog, interaction)
+                 await vtv_cog.start_game(interaction)
             else:
                 await interaction.response.send_message("❌ Lỗi: Game Vua Tiếng Việt chưa được load.", ephemeral=True)
         else:
@@ -53,7 +53,7 @@ class LobbyCog(commands.Cog):
             # Let's check config first.
              await interaction.response.send_message(
                  "❓ Kênh này chưa được cài đặt game mặc định nên không dùng lệnh chung được.\n"
-                 "Hãy dùng lệnh cụ thể như `/stop-vua-tieng-viet`.", 
+                 "Hãy liên hệ Admin để cài đặt kênh game.", 
                  ephemeral=True
              )
              return
@@ -68,7 +68,7 @@ class LobbyCog(commands.Cog):
         elif game_type == "vuatiengviet":
             vtv_cog = self.bot.get_cog("VuaTiengVietCog")
             if vtv_cog:
-                 await vtv_cog.stop_game.callback(vtv_cog, interaction)
+                 await vtv_cog.stop_game(interaction)
             else:
                  await interaction.response.send_message("❌ Lỗi cog.", ephemeral=True)
 

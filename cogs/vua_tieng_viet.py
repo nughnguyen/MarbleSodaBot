@@ -141,7 +141,6 @@ class VuaTiengVietCog(commands.Cog):
             "timer_task": task
         }
 
-    @app_commands.command(name="vua-tieng-viet", description="🎮 Bắt đầu minigame Vua Tiếng Việt")
     async def start_game(self, interaction: discord.Interaction):
         """Bắt đầu game Vua Tiếng Việt"""
         if interaction.channel_id in self.active_games:
@@ -153,7 +152,6 @@ class VuaTiengVietCog(commands.Cog):
         # Start the first round
         await self.start_new_round(interaction.channel)
 
-    @app_commands.command(name="stop-vua-tieng-viet", description="🛑 Kết thúc minigame Vua Tiếng Việt")
     async def stop_game(self, interaction: discord.Interaction):
         """Dừng game Vua Tiếng Việt"""
         if interaction.channel_id in self.active_games:
@@ -196,20 +194,25 @@ class VuaTiengVietCog(commands.Cog):
             total_chars = game_data.get("total_chars", 1)
             
             # Formula: Points * (Total - Revealed) / Total
-            # If Total=10, Revealed=1 -> 9/10 = 0.9 -> 90%
-            points = int(base_points * (total_chars - revealed_count) / total_chars)
+            # If answer length > 20 chars, multiplier x5
+            multiplier = 5 if len(correct_answer) > 20 else 1
+            calculated_points = int(base_points * (total_chars - revealed_count) / total_chars)
+            points = calculated_points * multiplier
             
             await self.db.add_points(message.author.id, message.guild.id, points)
             
             embed = discord.Embed(title="🎉 CHÚC MỪNG CHIẾN THẮNG!", color=0x00FF00)
             embed.description = f"👑 {message.author.mention} đã trả lời chính xác!\n\nĐáp án: **{correct_answer}**"
-            embed.add_field(name="Phần thưởng", value=f"💰 +{points:,} coinz (Gốc: {base_points:,}, Trừ do gợi ý: {base_points - points:,})", inline=False)
-            embed.set_footer(text="Chuẩn bị câu tiếp theo trong 3 giây...")
+            embed.add_field(name="Phần thưởng", value=f"💰 +{points:,} coinz\n(Gốc: {base_points:,}, Trừ gợi ý: -{base_points - calculated_points:,}, Human: x{multiplier})", inline=False)
+            if multiplier > 1:
+               embed.set_footer(text=f"🔥 CÂU HỎI KHÓ > 20 KÝ TỰ: NHÂN {multiplier} SỐ ĐIỂM! 🔥")
+            else:
+               embed.set_footer(text="Chuẩn bị câu tiếp theo trong 5 giây...")
             
             await message.channel.send(embed=embed)
             
             # Wait a bit before next round
-            await asyncio.sleep(3)
+            await asyncio.sleep(5)
             
             # Check if game was stopped during sleep
             if message.channel.id in self.active_games:
