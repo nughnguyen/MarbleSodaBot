@@ -205,8 +205,7 @@ class HelpView(discord.ui.View):
                 "**💳 PHƯƠNG THỨC THANH TOÁN:**\n"
                 "1. **MOMO** - Ví điện tử thông dụng\n"
                 "2. **VNPAY** - Quét mã tiện lợi\n"
-                "3. **VIETQR** - Chuyển khoản mọi ngân hàng (MB, VCB...)\n"
-                "4. **ZYPAGE** - Cổng thanh toán đa năng\n\n"
+                "3. **VIETQR** - Chuyển khoản mọi ngân hàng (MB, VCB, OCB...)\n\n"
                 "👇 **Chọn phương thức thanh toán bên dưới để bắt đầu:**"
             )
             embed.color = config.COLOR_GOLD

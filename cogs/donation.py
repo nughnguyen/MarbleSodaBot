@@ -37,43 +37,71 @@ class Donation(commands.Cog):
             # Query transactions that are 'success' but not 'rewarded'
             response = self.supabase.table('transactions').select("*").eq('status', 'success').eq('rewarded', False).execute()
             
-            if not response.data:
-                return
+            if response.data:
+                for txn in response.data:
+                    txn_id = txn.get('id')
+                    user_id = int(txn.get('user_id', 0))
+                    amount = int(txn.get('amount', 0))
+                    
+                    if not user_id or not amount:
+                        continue
 
-            for txn in response.data:
-                txn_id = txn.get('id')
-                user_id = int(txn.get('user_id', 0))
-                amount = int(txn.get('amount', 0))
-                
-                if not user_id or not amount:
-                    continue
+                    # Calculate coinz
+                    coinz = (amount // 1000) * config.COINZ_PER_1000VND
+                    
+                    # Add points using shared database
+                    if hasattr(self.bot, 'db'):
+                        await self.bot.db.add_points(user_id, 0, coinz)
+                    
+                    # Notify User
+                    try:
+                        user = await self.bot.fetch_user(user_id)
+                        embed = discord.Embed(
+                            title="✅ THANH TOÁN THÀNH CÔNG",
+                            description=(
+                                f"Cảm ơn bạn đã ủng hộ!\n"
+                                f"Đơn hàng: `{txn_id}`\n"
+                                f"Số nhận: **{coinz:,} Coinz**"
+                            ),
+                            color=config.COLOR_SUCCESS
+                        )
+                        await user.send(embed=embed)
+                    except Exception:
+                        pass 
+                    
+                    # Mark as rewarded
+                    self.supabase.table('transactions').update({'rewarded': True, 'rewarded_at': 'now()'}).eq('id', txn_id).execute()
 
-                # Calculate coinz
-                coinz = (amount // 1000) * config.COINZ_PER_1000VND
-                
-                # Add points using shared database
-                if hasattr(self.bot, 'db'):
-                    await self.bot.db.add_points(user_id, 0, coinz)
-                
-                # Notify User
-                try:
-                    user = await self.bot.fetch_user(user_id)
-                    embed = discord.Embed(
-                        title="✅ THANH TOÁN THÀNH CÔNG",
-                        description=(
-                            f"Cảm ơn bạn đã ủng hộ!\n"
-                            f"Đơn hàng: `{txn_id}`\n"
-                            f"Số nhận: **{coinz:,} Coinz**"
-                        ),
-                        color=config.COLOR_SUCCESS
-                    )
-                    await user.send(embed=embed)
-                except Exception:
-                    pass 
-                
-                # Mark as rewarded
-                self.supabase.table('transactions').update({'rewarded': True, 'rewarded_at': 'now()'}).eq('id', txn_id).execute()
-                
+            # Query 'late_payment' transactions
+            response_late = self.supabase.table('transactions').select("*").eq('status', 'late_payment').eq('rewarded', False).execute()
+            
+            if response_late.data:
+                for txn in response_late.data:
+                    txn_id = txn.get('id')
+                    user_id = int(txn.get('user_id', 0))
+                    amount = int(txn.get('amount', 0))
+                    
+                    if not user_id: continue
+
+                    # Notify User
+                    try:
+                        user = await self.bot.fetch_user(user_id)
+                        embed = discord.Embed(
+                            title="⚠️ GIAO DỊCH QUÁ HẠN",
+                            description=(
+                                f"Hệ thống ghi nhận khoản chuyển **{amount:,} VND**.\n"
+                                f"Tuy nhiên, giao dịch này thực hiện **sau 10 phút** kể từ khi tạo lệnh.\n"
+                                f"Vậy nên chúng tôi không có trách nhiệm nếu giao dịch này không được tính."
+                            ),
+                            color=discord.Color.red()
+                        )
+                        await user.send(embed=embed)
+                    except Exception:
+                        pass
+                    
+                    # Mark as rewarded/handled
+                    self.supabase.table('transactions').update({'rewarded': True, 'rewarded_at': 'now()'}).eq('id', txn_id).execute()
+
         except Exception as e:
             print(f"Error in donation loop: {e}")
 
@@ -149,8 +177,7 @@ class Donation(commands.Cog):
                 "**� PHƯƠNG THỨC THANH TOÁN:**\n"
                 "1. **MOMO** - Ví điện tử thông dụng\n"
                 "2. **VNPAY** - Quét mã tiện lợi\n"
-                "3. **VIETQR** - Chuyển khoản mọi ngân hàng (MB, VCB...)\n"
-                "4. **ZYPAGE** - Cổng thanh toán đa năng\n\n"
+                "3. **VIETQR** - Chuyển khoản mọi ngân hàng (MB, VCB, OCB...)\n\n"
                 "👇 **Chọn phương thức thanh toán bên dưới để bắt đầu:**"
             ),
             color=config.COLOR_GOLD
