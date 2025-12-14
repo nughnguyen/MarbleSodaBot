@@ -282,10 +282,11 @@ class BauCuaCog(commands.Cog):
     async def run_round(self, interaction: discord.Interaction):
         # Initial Embed
         embed = discord.Embed(
-            title="🎲 BẦU CUA TÔM CÁ (Space Edition) 🎲",
+            title="🎲 BẦU CUA TÔM CÁ 🎲",
             description=(
                 f"Hãy đặt cược vào các cửa bên dưới!\n"
-                f"Tối đa cược: **500,000** coinz/lần\n"
+                f"Tối đa cược: **không giới hạn**, có thể đặt cược nhiều lần\n"
+                f"Nhập **all** để đặt cược toàn bộ tiền\n"
                 f"Người tạo phòng: {interaction.user.mention}\n"
                 f"⚠️ Tiền sẽ được trừ và cộng sau khi quay xong!"
             ),
