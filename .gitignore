@@ -51,3 +51,8 @@ logs/
 
 # Discord Bot Specific
 data/wordchain.db
+
+# Replit
+.pythonlibs/
+.upm/
+.local/
