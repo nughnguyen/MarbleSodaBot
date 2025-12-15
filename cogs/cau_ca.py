@@ -103,26 +103,26 @@ BIOMES = {
 }
 
 RODS = {
-    "Plastic Rod":    {"name": "Cần Nhựa",       "price": 0,          "power": 0,    "luck": 0,   "emoji": emojis.ROD_PLASTIC},
-    "Steel Rod":      {"name": "Cần Thép",       "price": 5000,       "power": 10,   "luck": 5,   "emoji": emojis.ROD_STEEL},
-    "Alloy Rod":      {"name": "Cần Hợp Kim",    "price": 12000,      "power": 18,   "luck": 10,  "emoji": emojis.ROD_ALLOY},
-    "Fiberglass Rod": {"name": "Cần Sợi Thủy Tinh", "price": 18000,   "power": 22,   "luck": 12,  "emoji": emojis.ROD_FIBERGLASS},
-    "Golden Rod":     {"name": "Cần Vàng",       "price": 25000,      "power": 30,   "luck": 20,  "emoji": emojis.ROD_GOLDEN},
-    "Floating Rod":   {"name": "Cần Nổi",        "price": 40000,      "power": 40,   "luck": 25,  "emoji": emojis.ROD_FLOATING},
-    "Heavy Rod":      {"name": "Cần Hạng Nặng",  "price": 60000,      "power": 55,   "luck": 15,  "emoji": emojis.ROD_HEAVY},
-    "Heavier Rod":    {"name": "Cần Siêu Nặng",  "price": 80000,      "power": 70,   "luck": 20,  "emoji": emojis.ROD_HEAVIER},
-    "Lava Rod":       {"name": "Cần Dung Nham",  "price": 100000,     "power": 85,   "luck": 30,  "emoji": emojis.ROD_LAVA},
-    "Magma Rod":      {"name": "Cần Magma",      "price": 150000,     "power": 100,  "luck": 35,  "emoji": emojis.ROD_MAGMA},
-    "Oceanium Rod":   {"name": "Cần Đại Dương",  "price": 250000,     "power": 120,  "luck": 50,  "emoji": emojis.ROD_OCEANIUM},
-    "Sky Rod":        {"name": "Cần Bầu Trời",   "price": 500000,     "power": 150,  "luck": 60,  "emoji": emojis.ROD_SKY},
-    "Meteor Rod":     {"name": "Cần Thiên Thạch","price": 800000,     "power": 180,  "luck": 70,  "emoji": emojis.ROD_METEOR},
-    "Space Rod":      {"name": "Cần Vũ Trụ",     "price": 2000000,    "power": 250,  "luck": 100, "emoji": emojis.ROD_SPACE},
-    "Superium Rod":   {"name": "Cần Siêu Cấp",   "price": 5000000,    "power": 350,  "luck": 150, "emoji": emojis.ROD_SUPERIUM},
-    "Diamond Rod":    {"name": "Cần Kim Cương",  "price": 8000000,    "power": 450,  "luck": 200, "emoji": emojis.ROD_DIAMOND},
-    "Alien Rod":      {"name": "Cần Alien",      "price": 12000000,   "power": 600,  "luck": 250, "emoji": emojis.ROD_ALIEN},
-    "Saltspreader":   {"name": "Cần Rắc Muối",   "price": 20000000,   "power": 750,  "luck": 300, "emoji": emojis.ROD_SALTSPREADER},
-    "Infinity Rod":   {"name": "Cần Vô Cực",     "price": 50000000,   "power": 1000, "luck": 500, "emoji": emojis.ROD_INFINITY},
-    "Donator Rod":    {"name": "Cần Nhà Tài Trợ","price": 0,          "power": 1500, "luck": 800, "emoji": emojis.ROD_DONATOR, "description": "Cần câu dành riêng cho Nhà Tài Trợ (Không thể mua)"},
+    "Plastic Rod":    {"name": "Cần Nhựa",       "price": 0,          "power": 0,    "luck": 0,   "emoji": emojis.ROD_PLASTIC, "durability": None},
+    "Steel Rod":      {"name": "Cần Thép",       "price": 5000,       "power": 10,   "luck": 5,   "emoji": emojis.ROD_STEEL, "durability": 50},
+    "Alloy Rod":      {"name": "Cần Hợp Kim",    "price": 12000,      "power": 18,   "luck": 10,  "emoji": emojis.ROD_ALLOY, "durability": 80},
+    "Fiberglass Rod": {"name": "Cần Sợi Thủy Tinh", "price": 18000,   "power": 22,   "luck": 12,  "emoji": emojis.ROD_FIBERGLASS, "durability": 100},
+    "Golden Rod":     {"name": "Cần Vàng",       "price": 25000,      "power": 30,   "luck": 20,  "emoji": emojis.ROD_GOLDEN, "durability": 150},
+    "Floating Rod":   {"name": "Cần Nổi",        "price": 40000,      "power": 40,   "luck": 25,  "emoji": emojis.ROD_FLOATING, "durability": 180},
+    "Heavy Rod":      {"name": "Cần Hạng Nặng",  "price": 60000,      "power": 55,   "luck": 15,  "emoji": emojis.ROD_HEAVY, "durability": 200},
+    "Heavier Rod":    {"name": "Cần Siêu Nặng",  "price": 80000,      "power": 70,   "luck": 20,  "emoji": emojis.ROD_HEAVIER, "durability": 220},
+    "Lava Rod":       {"name": "Cần Dung Nham",  "price": 100000,     "power": 85,   "luck": 30,  "emoji": emojis.ROD_LAVA, "durability": 250},
+    "Magma Rod":      {"name": "Cần Magma",      "price": 150000,     "power": 100,  "luck": 35,  "emoji": emojis.ROD_MAGMA, "durability": 300},
+    "Oceanium Rod":   {"name": "Cần Đại Dương",  "price": 250000,     "power": 120,  "luck": 50,  "emoji": emojis.ROD_OCEANIUM, "durability": 400},
+    "Sky Rod":        {"name": "Cần Bầu Trời",   "price": 500000,     "power": 150,  "luck": 60,  "emoji": emojis.ROD_SKY, "durability": 500},
+    "Meteor Rod":     {"name": "Cần Thiên Thạch","price": 800000,     "power": 180,  "luck": 70,  "emoji": emojis.ROD_METEOR, "durability": 600},
+    "Space Rod":      {"name": "Cần Vũ Trụ",     "price": 2000000,    "power": 250,  "luck": 100, "emoji": emojis.ROD_SPACE, "durability": 800},
+    "Superium Rod":   {"name": "Cần Siêu Cấp",   "price": 5000000,    "power": 350,  "luck": 150, "emoji": emojis.ROD_SUPERIUM, "durability": 1000},
+    "Diamond Rod":    {"name": "Cần Kim Cương",  "price": 8000000,    "power": 450,  "luck": 200, "emoji": emojis.ROD_DIAMOND, "durability": 1200},
+    "Alien Rod":      {"name": "Cần Alien",      "price": 12000000,   "power": 600,  "luck": 250, "emoji": emojis.ROD_ALIEN, "durability": 1500},
+    "Saltspreader":   {"name": "Cần Rắc Muối",   "price": 20000000,   "power": 750,  "luck": 300, "emoji": emojis.ROD_SALTSPREADER, "durability": 2000},
+    "Infinity Rod":   {"name": "Cần Vô Cực",     "price": 50000000,   "power": 1000, "luck": 500, "emoji": emojis.ROD_INFINITY, "durability": 5000},
+    "Donator Rod":    {"name": "Cần Nhà Tài Trợ","price": 0,          "power": 1500, "luck": 800, "emoji": emojis.ROD_DONATOR, "description": "Cần câu dành riêng cho Nhà Tài Trợ (Không thể mua)", "durability": None},
 }
 # Map old keys to new if necessary, but here we assume clean slate or migration
 ROD_LIST = list(RODS.keys())
@@ -235,20 +235,27 @@ class ChangeBaitView(discord.ui.View):
              await interaction.response.send_message(msg, ephemeral=True) 
 
 class ChangeRodView(discord.ui.View):
-    def __init__(self, cog, user_id, owned_rods, current_rod, parent_view):
+    def __init__(self, cog, user_id, owned_rods, current_rod, parent_view, durability_map=None):
         super().__init__(timeout=60)
         self.cog = cog
         self.user_id = user_id
         self.owned_rods = owned_rods
         self.current_rod = current_rod
         self.parent_view = parent_view
+        if durability_map is None: durability_map = {}
         
         for rod_key in owned_rods:
             info = RODS.get(rod_key, {"name": rod_key, "emoji": "🎣"})
             style = discord.ButtonStyle.primary if rod_key == current_rod else discord.ButtonStyle.secondary
             disabled = (rod_key == current_rod)
             
-            btn = discord.ui.Button(label=info['name'], emoji=info['emoji'], style=style, disabled=disabled)
+            dura = durability_map.get(rod_key)
+            max_dura = info.get("durability")
+            label_s = info['name']
+            if dura is not None and max_dura:
+                label_s += f" [{dura}/{max_dura}]"
+            
+            btn = discord.ui.Button(label=label_s, emoji=info['emoji'], style=style, disabled=disabled)
             
             async def callback(inter, k=rod_key, n=info['name']):
                 await self.equip_rod(inter, k, n)
@@ -476,15 +483,21 @@ class FishingView(discord.ui.View):
         if interaction.user.id != self.user_id: return
         data = await self.cog.db.get_fishing_data(self.user_id)
         current_rod = data.get("rod_type", "Plastic Rod")
-        if "owned_rods" in data:
-            owned = data["owned_rods"]
-        else:
-            try:
-                curr_idx = ROD_LIST.index(current_rod)
-                owned = ROD_LIST[:curr_idx+1]
-            except:
-                owned = ["Plastic Rod"]
-        view = ChangeRodView(self.cog, self.user_id, owned, current_rod, self)
+        
+        inv = data.get("inventory", {})
+        owned = inv.get("rods", [])
+        durability_map = inv.get("rod_durability", {})
+
+        # Ensure default
+        if not owned: owned = ["Plastic Rod"]
+        
+        # Sync current rod if missing (migration fix)
+        if current_rod not in owned:
+            owned.append(current_rod)
+            inv["rods"] = owned
+            await self.cog.db.update_fishing_data(self.user_id, inventory=inv)
+
+        view = ChangeRodView(self.cog, self.user_id, owned, current_rod, self, durability_map)
         await interaction.response.send_message(f"👇 **Chọn cần câu ({len(owned)} sở hữu):**", view=view, ephemeral=True)
 
     @discord.ui.button(label="Shop", style=discord.ButtonStyle.primary, emoji="🛒", row=1)
@@ -684,6 +697,10 @@ class CauCaCog(commands.Cog):
             # Update Inventory
             if "rods" not in inventory: inventory["rods"] = []
             inventory["rods"].append("Steel Rod")
+            # Initialize durability
+            if "rod_durability" not in inventory: inventory["rod_durability"] = {}
+            inventory["rod_durability"]["Steel Rod"] = RODS["Steel Rod"]["durability"]
+            
             # Also ensure Steel Rod is active
             await self.db.update_fishing_data(user_id, rod_type="Steel Rod", inventory=inventory)
             
@@ -713,13 +730,54 @@ class CauCaCog(commands.Cog):
         
         # Get Stats (Power/Luck)
         power, luck, data, current_bait_key = await self.get_stats_multiplier(user_id)
+        rod_key = data.get("rod_type", "Plastic Rod")
         
+        # === DURABILITY CHECK ===
+        durability_map = inventory.get("rod_durability", {})
+        if rod_key not in durability_map:
+             # Auto-fix missing durability
+             max_d = RODS.get(rod_key, {}).get("durability")
+             if max_d:
+                 durability_map[rod_key] = max_d
+             else:
+                 # Infinite durability for Plastic/Donator
+                 pass
+        
+        current_durability = durability_map.get(rod_key)
+        
+        # If rod has durability and it's 0 (should not happen if we check after use, but safety first)
+        if current_durability is not None and current_durability <= 0:
+             # Remove rod
+             if rod_key in inventory.get("rods", []):
+                 inventory["rods"].remove(rod_key)
+                 if rod_key in durability_map: del durability_map[rod_key]
+             
+             await self.db.update_fishing_data(user_id, inventory=inventory, rod_type="Plastic Rod")
+             msg = f"💥 **CẦN CÂU CỦA BẠN ĐÃ BỊ GÃY!**\nCần **{RODS[rod_key]['name']}** đã hỏng hoàn toàn. Hãy mua cần mới!"
+             try: await interaction.response.send_message(msg, ephemeral=True)
+             except: await interaction.followup.send(msg, ephemeral=True)
+             return
+
         # Bait Consumption Logic
         baits_inv = inventory.get("baits", {})
         sub_bait_key = stats.get("magnet_sub_bait")
         bait_consumed = False
         is_magnet = (current_bait_key == "Magnet")
         loops = 1
+        
+        if current_durability is not None:
+             # Logic change: Durability consumes per CAST (not per fish)
+             # But if loops > 1 (Magnet), does it consume more? 
+             # Standard: 1 cast = 1 durability, regardless of 1 or 5 fish.
+             
+             durability_map[rod_key] -= 1
+             inventory["rod_durability"] = durability_map
+             
+             if durability_map[rod_key] <= 0:
+                 # ROD BREAKS AFTER THIS CAST
+                 # We let the cast finish, then notify break at the end? or check at end?
+                 # Let's handle break at the end of function to allow receiving the fish.
+                 pass
 
         if current_bait_key:
              if baits_inv.get(current_bait_key, 0) > 0:
@@ -749,6 +807,10 @@ class CauCaCog(commands.Cog):
         fish_pool = current_biome_data["fish"]
         
         embed_color = discord.Color.blue()
+        
+        # Initialize variables for scope safety
+        new_rod_type = None
+        rod_broken_msg = ""
         
         if not treasure_found and random.uniform(0, 100) < treasure_chance:
             # TREASURE EVENT
@@ -923,17 +985,45 @@ class CauCaCog(commands.Cog):
 
                 desc_lines.append(f"{r_emoji} **{rarity_vi}** | {selected_fish['emoji']} **{selected_fish['name']}** ({size}cm)")
 
+            # Check Rod Break Status before creating Embed
+            rod_broken_msg = ""
+            user_dura = inventory.get("rod_durability", {}).get(rod_key)
+            new_rod_type = None # Default: No change
+            
+            if user_dura is not None and user_dura <= 0:
+                 # Remove rod from inventory
+                 if "rods" in inventory and rod_key in inventory["rods"]:
+                     inventory["rods"].remove(rod_key)
+                 if "rod_durability" in inventory and rod_key in inventory["rod_durability"]:
+                     del inventory["rod_durability"][rod_key]
+                 
+                 # Prepare to reset rod to Plastic
+                 new_rod_type = "Plastic Rod"
+                 rod_broken_msg = f"\n\n💥 **CẦN CÂU ĐÃ GÃY!**\nCần **{RODS[rod_key]['name']}** của bạn đã hỏng hoàn toàn do hết độ bền. Hãy mua cần mới!"
+
             title = "🎣 CÂU ĐƯỢC CÁ!"
             if is_magnet: title = f"🧲 NAM CHÂM HÚT ĐƯỢC {len(result_list)} CÁ!"
             
             embed = discord.Embed(title=title, color=embed_color)
             embed.description = "\n".join(desc_lines)
-            embed.add_field(name="Tổng kết", value=f"Exp: +{total_xp} | Giá trị: {total_val:,} Coinz {emojis.ANIMATED_EMOJI_COINZ}")
+            embed.add_field(name="Tổng kết", value=f"Exp: +{total_xp} | Giá trị: {total_val:,} Coinz {emojis.ANIMATED_EMOJI_COINZ}{rod_broken_msg}")
+            
+            dura_info = ""
+            if user_dura is not None:
+                max_dura = RODS[rod_key]['durability']
+                dura_info = f" | Độ bền: {max(0, user_dura)}/{max_dura}"
+            
+            embed.set_footer(text=f"Level: {stats.get('level', 1)} | XP: {stats.get('xp', 0)}{dura_info}")
             
             stats["xp"] = stats.get("xp", 0) + total_xp
 
         # Save Data
-        await self.db.update_fishing_data(user_id, inventory=inventory, stats=stats)
+        save_kwargs = {"inventory": inventory, "stats": stats}
+        if new_rod_type:
+            save_kwargs["rod_type"] = new_rod_type
+            
+        await self.db.update_fishing_data(user_id, **save_kwargs)
+
         
         # Check Badges
         await self.check_badges(user_id, interaction.channel)
@@ -1152,7 +1242,7 @@ class CauCaCog(commands.Cog):
                 buyable_rods.append((key, info))
                 embed.add_field(
                     name=f"{info['emoji']} {info['name']}",
-                    value=f"💰 Giá: **{info['price']:,}** Coinz {emojis.ANIMATED_EMOJI_COINZ}\n💪 Power: {info['power']} | 🍀 Luck: {info['luck']}",
+                    value=f"💰 Giá: **{info['price']:,}** Coinz {emojis.ANIMATED_EMOJI_COINZ}\n💪 Power: {info['power']} | 🍀 Luck: {info['luck']} | 🔧 Độ bền: {info['durability']}",
                     inline=False
                 )
         
@@ -1169,6 +1259,28 @@ class CauCaCog(commands.Cog):
                 
             @discord.ui.button(label="Xác nhận mua", style=discord.ButtonStyle.success, emoji="✅")
             async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+                # Check prerequisites
+                data = await self.db.get_fishing_data(interaction.user.id)
+                inv = data.get("inventory", {})
+                owned_rods = inv.get("rods", ["Plastic Rod"])
+                if not owned_rods: owned_rods = ["Plastic Rod"]
+
+                if self.rod_key in owned_rods:
+                     await interaction.response.edit_message(content="❌ Bạn đã sở hữu cần này rồi!", view=None)
+                     return
+
+                # Check strict progression
+                try:
+                    curr_idx = ROD_LIST.index(self.rod_key)
+                    if curr_idx > 0:
+                        prev_rod = ROD_LIST[curr_idx - 1]
+                        if prev_rod not in owned_rods:
+                             prev_rod_name = RODS.get(prev_rod, {}).get("name", prev_rod)
+                             await interaction.response.edit_message(content=f"❌ Bạn cần sở hữu **{prev_rod_name}** trước khi mua cần này!", view=None)
+                             return
+                except ValueError:
+                    pass # Rod key not in list? Should not happen if data is consistent
+
                 user_point = await self.db.get_player_points(interaction.user.id, interaction.guild_id)
                 cost = self.rod_info["price"]
                 
@@ -1177,7 +1289,17 @@ class CauCaCog(commands.Cog):
                     return
 
                 await self.db.add_points(interaction.user.id, interaction.guild_id, -cost)
-                await self.db.update_fishing_data(interaction.user.id, rod_type=self.rod_key)
+                
+                # Update Inventory and Equip
+                if "rods" not in inv: inv["rods"] = owned_rods
+                if self.rod_key not in inv["rods"]:
+                    inv["rods"].append(self.rod_key)
+                    
+                # Initialize Durability
+                if "rod_durability" not in inv: inv["rod_durability"] = {}
+                inv["rod_durability"][self.rod_key] = RODS[self.rod_key]["durability"]
+                
+                await self.db.update_fishing_data(interaction.user.id, rod_type=self.rod_key, inventory=inv)
                 
                 await interaction.response.edit_message(content=f"🎉 Chúc mừng! Bạn đã sở hữu **{self.rod_info['emoji']} {self.rod_info['name']}**!", view=None)
                 self.value = True
@@ -1194,7 +1316,13 @@ class CauCaCog(commands.Cog):
             # Style update: highlight if current? discord buttons don't support custom css.
             style = discord.ButtonStyle.primary if key == current_rod_key else discord.ButtonStyle.secondary
             if key == current_rod_key:
-                label = f"{info['name']} (Đang dùng)"
+                # Add durability info to label if possible
+                dura = data.get("inventory", {}).get("rod_durability", {}).get(key)
+                max_dura = info.get("durability")
+                d_str = ""
+                if dura is not None and max_dura:
+                    d_str = f" [{dura}/{max_dura}]"
+                label = f"{info['name']} (Đang dùng){d_str}"
                 disabled = True
             else:
                 label = info['name']
@@ -1231,6 +1359,32 @@ class CauCaCog(commands.Cog):
         
         embed = discord.Embed(title=f"🎒 TÚI ĐỒ CỦA {interaction.user.display_name.upper()}", color=discord.Color.gold())
         
+        # Rods
+        rods_inv = inv.get("rods", [])
+        dura_map = inv.get("rod_durability", {})
+        # Ensure current rod is in list if not (migration safety)
+        current_rod = data.get("rod_type", "Plastic Rod")
+        
+        if rods_inv:
+            rod_lines = []
+            for r in rods_inv:
+                r_info = RODS.get(r, {"name": r, "emoji": "🎣", "durability": None})
+                dura = dura_map.get(r)
+                max_d = r_info.get("durability")
+                
+                dura_str = "Vĩnh viễn"
+                if max_d:
+                    cur = dura if dura is not None else max_d
+                    dura_str = f"{cur}/{max_d}"
+                
+                status = "✅ (Đang dùng)" if r == current_rod else ""
+                rod_lines.append(f"{r_info['emoji']} **{r_info['name']}** {status} [Độ bền: {dura_str}]")
+            
+            # If too many rods, truncate
+            rod_text = "\n".join(rod_lines)
+            if len(rod_text) > 1000: rod_text = rod_text[:950] + "\n... (Còn nữa)"
+            embed.add_field(name="🎣 Cần Câu", value=rod_text, inline=False)
+
         # Fish
         fish_inv = inv.get("fish", {})
         if fish_inv:
