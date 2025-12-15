@@ -123,19 +123,22 @@ class AdminCog(commands.Cog):
         if game_cog:
             await game_cog.start_turn_timeout(interaction.channel_id, interaction.user.id)
     
-    @app_commands.command(name="add-coinz", description="➕ Thêm coinz cho người chơi (Admin only)")
+    @app_commands.command(name="add-coinz", description="➕ Thêm coinz cho người chơi (Owner only)")
     @app_commands.describe(
         user="Người chơi nhận coinz",
         points="Số coinz cần thêm"
     )
-    @app_commands.checks.has_permissions(administrator=True)
     async def add_coinz(
         self, 
         interaction: discord.Interaction,
         user: discord.User,
         points: int
     ):
-        """Admin thêm coinz cho người chơi"""
+        """Owner thêm coinz cho người chơi"""
+        if interaction.user.id != 561443914062757908:
+             await interaction.response.send_message("❌ Chỉ có **Owner Bot** mới được dùng lệnh này!", ephemeral=True)
+             return
+
         await self.db.add_points(user.id, interaction.guild_id, points)
         
         await interaction.response.send_message(
@@ -143,7 +146,7 @@ class AdminCog(commands.Cog):
             ephemeral=True
         )
     
-    @app_commands.command(name="reset-stats", description="🔄 Reset thống kê local (không mất Coinz) (Admin only)")
+    @app_commands.command(name="reset-stats", description="🔄 Reset toàn bộ thống kê game (giữ lại Coinz) (Admin only)")
     @app_commands.describe(user="Người chơi cần reset (để trống để reset tất cả)")
     @app_commands.checks.has_permissions(administrator=True)
     async def reset_stats(
@@ -151,38 +154,62 @@ class AdminCog(commands.Cog):
         interaction: discord.Interaction,
         user: discord.User = None
     ):
-        """Admin reset thống kê local (giữ nguyên Coinz)"""
+        """Admin reset thống kê game (giữ nguyên Coinz)"""
         import aiosqlite
         
         async with aiosqlite.connect(config.DATABASE_PATH) as db:
             if user:
-                # Reset 1 người (chỉ xóa stats ở guild này, coinz ở guild_id=0 vẫn giữ)
+                # 1. Xóa Fishing Inventory (Global)
+                await db.execute("DELETE FROM fishing_inventory WHERE user_id = ?", (user.id,))
+                
+                # 2. Xóa Stats Local (Guild hiện tại)
                 await db.execute(
                     "DELETE FROM player_stats WHERE user_id = ? AND guild_id = ?",
                     (user.id, interaction.guild_id)
                 )
-                message = f"✅ Đã reset thống kê game của {user.mention} trong server này (Coinz vẫn giữ nguyên)!"
+                
+                # 3. Reset Global Stats (Guild 0) nhưng GIỮ LẠI total_points
+                # Reset daily info, streak, etc.
+                await db.execute("""
+                    UPDATE player_stats 
+                    SET games_played=0, words_submitted=0, correct_words=0, wrong_words=0, 
+                        longest_word='', longest_word_length=0, 
+                        daily_streak=0, last_daily_claim=NULL, last_daily_reward=0
+                    WHERE user_id = ? AND guild_id = 0
+                """, (user.id,))
+                
+                message = f"✅ Đã reset toàn bộ thống kê game, túi đồ câu cá của {user.mention} (Coinz được bảo toàn)!"
             else:
-                # Reset tất cả
-                await db.execute(
-                    "DELETE FROM player_stats WHERE guild_id = ?",
-                    (interaction.guild_id,)
-                )
-                message = "✅ Đã reset toàn bộ thống kê game trong server này (Coinz vẫn giữ nguyên)!"
+                # Reset tất cả mọi người (Nguy hiểm, nhưng theo yêu cầu)
+                await db.execute("DELETE FROM fishing_inventory")
+                await db.execute("DELETE FROM player_stats WHERE guild_id = ?", (interaction.guild_id,))
+                # Reset global stats exclude points for ALL
+                await db.execute("""
+                    UPDATE player_stats 
+                    SET games_played=0, words_submitted=0, correct_words=0, wrong_words=0, 
+                        longest_word='', longest_word_length=0, 
+                        daily_streak=0, last_daily_claim=NULL, last_daily_reward=0
+                    WHERE guild_id = 0
+                """)
+                
+                message = "✅ Đã reset thống kê game của TẤT CẢ thành viên (Coinz được bảo toàn)!"
             
             await db.commit()
         
         await interaction.response.send_message(message, ephemeral=True)
 
-    @app_commands.command(name="reset-coinz", description="💸 Reset toàn bộ Coinz về 0 (Admin only)")
+    @app_commands.command(name="reset-coinz", description="💸 Reset toàn bộ Coinz về 0 (Owner only)")
     @app_commands.describe(user="Người chơi cần reset coinz (để trống để reset tất cả mọi người!)")
-    @app_commands.checks.has_permissions(administrator=True)
     async def reset_coinz(
         self,
         interaction: discord.Interaction,
         user: discord.User = None
     ):
-        """Admin reset coinz về 0"""
+        """Owner reset coinz về 0"""
+        if interaction.user.id != 561443914062757908:
+             await interaction.response.send_message("❌ Chỉ có **Owner Bot** mới được dùng lệnh này!", ephemeral=True)
+             return
+
         import aiosqlite
         
         # Confirm action? For now just execute.
@@ -206,19 +233,22 @@ class AdminCog(commands.Cog):
             
         await interaction.response.send_message(message, ephemeral=True)
 
-    @app_commands.command(name="subtract-coinz", description="➖ Trừ coinz của người chơi (Admin only)")
+    @app_commands.command(name="subtract-coinz", description="➖ Trừ coinz của người chơi (Owner only)")
     @app_commands.describe(
         user="Người chơi bị trừ coinz",
         points="Số coinz cần trừ"
     )
-    @app_commands.checks.has_permissions(administrator=True)
     async def remove_coinz(
         self, 
         interaction: discord.Interaction,
         user: discord.User,
         points: int
     ):
-        """Admin trừ coinz của người chơi"""
+        """Owner trừ coinz của người chơi"""
+        if interaction.user.id != 561443914062757908:
+             await interaction.response.send_message("❌ Chỉ có **Owner Bot** mới được dùng lệnh này!", ephemeral=True)
+             return
+
         if points <= 0:
             await interaction.response.send_message("❌ Số Coinz trừ phải lớn hơn 0!", ephemeral=True)
             return
@@ -228,7 +258,7 @@ class AdminCog(commands.Cog):
         await self.db.add_points(user.id, interaction.guild_id, -points)
         
         await interaction.response.send_message(
-            f"✅ Đã trừ **{points}** Coinz của {user.mention}!",
+            f"✅ Đã trừ **{points}** Coinz {emojis.ANIMATED_EMOJI_COINZ} của {user.mention}!",
             ephemeral=True
         )
 
