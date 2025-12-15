@@ -297,37 +297,15 @@ class ConfirmUnlockView(discord.ui.View):
         self.parent_view = parent_view
         self.value = None
 
-    @discord.ui.button(label="Mở Khóa Ngay", style=discord.ButtonStyle.success, emoji="🔓")
-    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id != self.user_id: return
-        
-        # Deduct
-        user_point = await self.cog.db.get_player_points(self.user_id, interaction.guild_id)
-        if user_point < self.cost:
-             await interaction.response.send_message("❌ Tiền đâu mà mở?", ephemeral=True)
-             return
-             
-        await self.cog.db.add_points(self.user_id, interaction.guild_id, -self.cost)
-        
-        # Unlock
-        data = await self.cog.db.get_fishing_data(self.user_id)
-        stats = data.get("stats", {})
-        unlocked = stats.get("unlocked_biomes", ["River"])
-        if self.biome_key not in unlocked:
-            unlocked.append(self.biome_key)
-            stats["unlocked_biomes"] = unlocked
-            stats["current_biome"] = self.biome_key # Switch immediately
-            await self.cog.db.update_fishing_data(self.user_id, stats=stats)
-            
-        await interaction.response.send_message(f"🎉 Đã mở khóa và chuyển đến **{BIOMES[self.biome_key]['name']}**!", ephemeral=True)
-        self.value = True
-        self.stop()
-
-    @discord.ui.button(label="Để Sau", style=discord.ButtonStyle.secondary)
-    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id != self.user_id: return
-        await interaction.response.send_message("❌ Đã hủy.", ephemeral=True)
-        self.stop()
+class BiomeSelect(discord.ui.Select):
+    def __init__(self, options):
+        super().__init__(placeholder="🗺️ Xem thông tin vùng...", min_values=1, max_values=1, options=options)
+    
+    async def callback(self, interaction: discord.Interaction):
+        self.view.selected_biome = self.values[0]
+        self.view.update_components()
+        embed = self.view.get_embed()
+        await interaction.response.edit_message(embed=embed, view=self.view)
 
 class BiomeSelectView(discord.ui.View):
     def __init__(self, cog, user_id, current_biome, stats):
@@ -335,65 +313,81 @@ class BiomeSelectView(discord.ui.View):
         self.cog = cog
         self.user_id = user_id
         self.current_biome = current_biome
+        self.selected_biome = current_biome
         self.stats = stats
         self.unlocked = stats.get("unlocked_biomes", ["River"])
+        self.update_components()
+
+    def update_components(self):
+        self.clear_items()
         
         options = []
         for k, v in BIOMES.items():
             is_unlocked = k in self.unlocked
             label = v["name"]
-            desc = v["desc"]
             emoji = v["emoji"]
-            
-            if not is_unlocked:
-                label = f"🔒 {label}"
-                desc = f"Yêu cầu: {v.get('req_xp',0)} XP | {v.get('req_money',0):,} Coinz"
-            
-            # Highlight current
-            default = (k == current_biome)
-            
-            options.append(discord.SelectOption(label=label, description=desc, emoji=emoji, value=k, default=default))
-            
-        self.add_item(BiomeSelect(options, cog, user_id, self.unlocked, stats))
-
-class BiomeSelect(discord.ui.Select):
-    def __init__(self, options, cog, user_id, unlocked, stats):
-        super().__init__(placeholder="🗺️ Chọn địa điểm câu cá...", min_values=1, max_values=1, options=options)
-        self.cog = cog
-        self.user_id = user_id
-        self.unlocked = unlocked
-        self.stats = stats
+            desc = "Đã mở khóa" if is_unlocked else "🔒 Locked"
+            options.append(discord.SelectOption(label=label, emoji=emoji, value=k, description=desc, default=(k==self.selected_biome)))
+        self.add_item(BiomeSelect(options))
         
-    async def callback(self, interaction: discord.Interaction):
-        if interaction.user.id != self.user_id: return
-        
-        choice = self.values[0]
-        biome_data = BIOMES[choice]
-        
-        if choice in self.unlocked:
-            # Switch
-            if choice == self.stats.get("current_biome"):
-                await interaction.response.send_message("Bạn đang ở đây rồi!", ephemeral=True)
-                return
-            
-            self.stats["current_biome"] = choice
-            await self.cog.db.update_fishing_data(self.user_id, stats=self.stats)
-            await interaction.response.send_message(f"✅ Đã di chuyển đến **{biome_data['name']}**!", ephemeral=True)
-        
+        if self.selected_biome in self.unlocked:
+             style = discord.ButtonStyle.secondary if self.selected_biome == self.current_biome else discord.ButtonStyle.success
+             label = "Đang Ở Đây" if self.selected_biome == self.current_biome else "Đi Đến Đây"
+             disabled = (self.selected_biome == self.current_biome)
+             
+             btn = discord.ui.Button(label=label, style=style, disabled=disabled, emoji="✅")
+             btn.callback = self.move_callback
+             self.add_item(btn)
         else:
-            # Check reqs
-            req_xp = biome_data.get("req_xp", 0)
-            req_money = biome_data.get("req_money", 0)
-            
-            user_xp = self.stats.get("xp", 0)
-            
-            if user_xp < req_xp:
-                await interaction.response.send_message(f"❌ Bạn cần **{req_xp} XP** để mở khóa vùng này! (Hiện có: {user_xp} XP)", ephemeral=True)
-                return
-            
-            # Prompt unlock
-            view = ConfirmUnlockView(self.cog, self.user_id, choice, req_money, self.view)
-            await interaction.response.send_message(f"🔓 Bạn có muốn mở khóa **{biome_data['name']}** với giá **{req_money:,} Coinz** {emojis.ANIMATED_EMOJI_COINZ} không?", view=view, ephemeral=True)
+             cost = BIOMES[self.selected_biome].get("req_money", 0)
+             btn = discord.ui.Button(label=f"Mở Khóa ({cost:,} Coinz)", style=discord.ButtonStyle.primary, emoji="🔓")
+             btn.callback = self.unlock_callback
+             self.add_item(btn)
+
+    def get_embed(self):
+        b_data = BIOMES[self.selected_biome]
+        embed = discord.Embed(title=f"{b_data['emoji']} {b_data['name']}", description=b_data['desc'], color=discord.Color.blue())
+        
+        req_xp = b_data.get("req_xp", 0)
+        req_money = b_data.get("req_money", 0)
+        status = "✅ Đã mở khóa" if self.selected_biome in self.unlocked else f"🔒 Yêu cầu: {req_xp} XP | {req_money:,} Coinz"
+        embed.add_field(name="📍 Trạng Thái", value=status, inline=False)
+        
+        fish_list = b_data.get("fish", [])
+        fish_desc = "\n".join([f"- {f['emoji']} {f['name']}" for f in fish_list])
+        embed.add_field(name="🐟 Các loài cá:", value=fish_desc or "Chưa có thông tin", inline=False)
+        return embed
+
+    async def move_callback(self, interaction: discord.Interaction):
+         if interaction.user.id != self.user_id: return
+         self.stats["current_biome"] = self.selected_biome
+         await self.cog.db.update_fishing_data(self.user_id, stats=self.stats)
+         await interaction.response.edit_message(content=f"✅ Đã chuyển đến **{BIOMES[self.selected_biome]['name']}**!", view=None, embed=None)
+
+    async def unlock_callback(self, interaction: discord.Interaction):
+         if interaction.user.id != self.user_id: return
+         b_key = self.selected_biome
+         b_data = BIOMES[b_key]
+         cost = b_data.get("req_money", 0)
+         req_xp = b_data.get("req_xp", 0)
+         user_xp = self.stats.get("xp", 0)
+         
+         if user_xp < req_xp:
+              await interaction.response.send_message(f"❌ Bạn chưa đủ kinh nghiệm! Cần {req_xp} XP.", ephemeral=True)
+              return
+              
+         user_point = await self.cog.db.get_player_points(self.user_id, interaction.guild_id)
+         if user_point < cost:
+              await interaction.response.send_message(f"❌ Bạn không đủ tiền! Cần {cost:,} Coinz.", ephemeral=True)
+              return
+              
+         await self.cog.db.add_points(self.user_id, interaction.guild_id, -cost)
+         self.unlocked.append(b_key)
+         self.stats["unlocked_biomes"] = self.unlocked
+         self.stats["current_biome"] = b_key
+         await self.cog.db.update_fishing_data(self.user_id, stats=self.stats)
+         
+         await interaction.response.edit_message(content=f"🎉 Đã mở khóa và chuyển đến **{b_data['name']}**!", view=None, embed=None)
 
 class FishingView(discord.ui.View):
     def __init__(self, cog, user_id, current_biome, last_catch=None):
@@ -462,7 +456,8 @@ class FishingView(discord.ui.View):
         data = await self.cog.db.get_fishing_data(self.user_id)
         stats = data.get("stats", {})
         view = BiomeSelectView(self.cog, self.user_id, self.current_biome, stats)
-        await interaction.response.send_message("🗺️ **CHỌN ĐỊA ĐIỂM CÂU CÁ:**", view=view, ephemeral=True)
+        embed = view.get_embed()
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     @discord.ui.button(label="Đổi Mồi", style=discord.ButtonStyle.secondary, emoji="🪱", row=1)
     async def change_bait(self, interaction: discord.Interaction, button: discord.ui.Button):
