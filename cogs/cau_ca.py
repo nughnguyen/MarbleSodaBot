@@ -161,6 +161,12 @@ TREASURES = [
     {"name": "Cổ Vật",          "value": 1000000,"emoji": emojis.CHEST_ARTIFACT},
 ]
 
+CHARMS = {
+    "Lucky Charm": {"name": "Bùa May Mắn", "price": 5000, "power": 0, "luck": 50, "duration_min": 10, "duration_max": 30, "emoji": "🍀"},
+    "Power Charm": {"name": "Bùa Sức Mạnh", "price": 8000, "power": 50, "luck": 0, "duration_min": 10, "duration_max": 20, "emoji": "💪"},
+    "Golden Charm": {"name": "Bùa Vàng", "price": 20000, "power": 30, "luck": 30, "duration_min": 5, "duration_max": 15, "emoji": "🌟"},
+}
+
 class ChangeBaitView(discord.ui.View):
     def __init__(self, cog, user_id, baits_inv, parent_view):
         super().__init__(timeout=60)
@@ -182,15 +188,51 @@ class ChangeBaitView(discord.ui.View):
                 self.add_item(btn)
 
     async def equip_bait(self, interaction: discord.Interaction, key, name):
-        # Update DB
+        if key == "Magnet":
+            # Prompt for sub-bait
+            other_baits = {k: v for k, v in self.baits_inv.items() if k != "Magnet" and v > 0}
+            
+            if not other_baits:
+                 await self._do_equip(interaction, key, None)
+                 return
+                 
+            view = discord.ui.View()
+            options = [discord.SelectOption(label="Không dùng kèm", value="none", emoji="❌")]
+            
+            for k, count in other_baits.items():
+                 b_info = BAITS.get(k, {"name": k, "emoji": "🪱"})
+                 options.append(discord.SelectOption(label=f"{b_info['name']} (x{count})", value=k, emoji=b_info['emoji']))
+            
+            select = discord.ui.Select(placeholder="Chọn mồi dùng kèm Nam Châm...", options=options[:25])
+            
+            async def sub_callback(inter):
+                 val = select.values[0]
+                 sub_bait = val if val != "none" else None
+                 await self._do_equip(inter, "Magnet", sub_bait)
+            
+            select.callback = sub_callback
+            view.add_item(select)
+            
+            await interaction.response.send_message("🧲 Bạn có muốn dùng kèm mồi khác để tăng hiệu quả không?", view=view, ephemeral=True)
+            return
+
+        await self._do_equip(interaction, key, None)
+
+    async def _do_equip(self, interaction, key, sub_bait):
         data = await self.cog.db.get_fishing_data(self.user_id)
         stats = data.get("stats", {})
         stats["current_bait"] = key
+        stats["magnet_sub_bait"] = sub_bait
         await self.cog.db.update_fishing_data(self.user_id, stats=stats)
         
-        await interaction.response.send_message(f"✅ Đã trang bị mồi **{name}**!", ephemeral=True)
-        # We don't necessarily update the parent view content immediately unless we want to reflect "Current Bait" in footer of embed if it was there.
-        # But FishingView embed updates on next fishing action usually. 
+        msg = f"✅ Đã trang bị mồi **{BAITS.get(key,{}).get('name', key)}**!"
+        if sub_bait:
+             msg += f" (Kèm: **{BAITS.get(sub_bait,{}).get('name', sub_bait)}**)"
+        
+        if interaction.response.is_done():
+             await interaction.edit_original_response(content=msg, view=None)
+        else:
+             await interaction.response.send_message(msg, ephemeral=True) 
 
 class ChangeRodView(discord.ui.View):
     def __init__(self, cog, user_id, owned_rods, current_rod, parent_view):
@@ -244,6 +286,114 @@ class ShopSelectView(discord.ui.View):
              # Charm shop is a regular method, not a command anymore
              await self.cog.charm_shop(interaction)
 
+
+class ConfirmUnlockView(discord.ui.View):
+    def __init__(self, cog, user_id, biome_key, cost, parent_view):
+        super().__init__(timeout=60)
+        self.cog = cog
+        self.user_id = user_id
+        self.biome_key = biome_key
+        self.cost = cost
+        self.parent_view = parent_view
+        self.value = None
+
+    @discord.ui.button(label="Mở Khóa Ngay", style=discord.ButtonStyle.success, emoji="🔓")
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id: return
+        
+        # Deduct
+        user_point = await self.cog.db.get_player_points(self.user_id, interaction.guild_id)
+        if user_point < self.cost:
+             await interaction.response.send_message("❌ Tiền đâu mà mở?", ephemeral=True)
+             return
+             
+        await self.cog.db.add_points(self.user_id, interaction.guild_id, -self.cost)
+        
+        # Unlock
+        data = await self.cog.db.get_fishing_data(self.user_id)
+        stats = data.get("stats", {})
+        unlocked = stats.get("unlocked_biomes", ["River"])
+        if self.biome_key not in unlocked:
+            unlocked.append(self.biome_key)
+            stats["unlocked_biomes"] = unlocked
+            stats["current_biome"] = self.biome_key # Switch immediately
+            await self.cog.db.update_fishing_data(self.user_id, stats=stats)
+            
+        await interaction.response.send_message(f"🎉 Đã mở khóa và chuyển đến **{BIOMES[self.biome_key]['name']}**!", ephemeral=True)
+        self.value = True
+        self.stop()
+
+    @discord.ui.button(label="Để Sau", style=discord.ButtonStyle.secondary)
+    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id: return
+        await interaction.response.send_message("❌ Đã hủy.", ephemeral=True)
+        self.stop()
+
+class BiomeSelectView(discord.ui.View):
+    def __init__(self, cog, user_id, current_biome, stats):
+        super().__init__(timeout=60)
+        self.cog = cog
+        self.user_id = user_id
+        self.current_biome = current_biome
+        self.stats = stats
+        self.unlocked = stats.get("unlocked_biomes", ["River"])
+        
+        options = []
+        for k, v in BIOMES.items():
+            is_unlocked = k in self.unlocked
+            label = v["name"]
+            desc = v["desc"]
+            emoji = v["emoji"]
+            
+            if not is_unlocked:
+                label = f"🔒 {label}"
+                desc = f"Yêu cầu: {v.get('req_xp',0)} XP | {v.get('req_money',0):,} Coinz"
+            
+            # Highlight current
+            default = (k == current_biome)
+            
+            options.append(discord.SelectOption(label=label, description=desc, emoji=emoji, value=k, default=default))
+            
+        self.add_item(BiomeSelect(options, cog, user_id, self.unlocked, stats))
+
+class BiomeSelect(discord.ui.Select):
+    def __init__(self, options, cog, user_id, unlocked, stats):
+        super().__init__(placeholder="🗺️ Chọn địa điểm câu cá...", min_values=1, max_values=1, options=options)
+        self.cog = cog
+        self.user_id = user_id
+        self.unlocked = unlocked
+        self.stats = stats
+        
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user.id != self.user_id: return
+        
+        choice = self.values[0]
+        biome_data = BIOMES[choice]
+        
+        if choice in self.unlocked:
+            # Switch
+            if choice == self.stats.get("current_biome"):
+                await interaction.response.send_message("Bạn đang ở đây rồi!", ephemeral=True)
+                return
+            
+            self.stats["current_biome"] = choice
+            await self.cog.db.update_fishing_data(self.user_id, stats=self.stats)
+            await interaction.response.send_message(f"✅ Đã di chuyển đến **{biome_data['name']}**!", ephemeral=True)
+        
+        else:
+            # Check reqs
+            req_xp = biome_data.get("req_xp", 0)
+            req_money = biome_data.get("req_money", 0)
+            
+            user_xp = self.stats.get("xp", 0)
+            
+            if user_xp < req_xp:
+                await interaction.response.send_message(f"❌ Bạn cần **{req_xp} XP** để mở khóa vùng này! (Hiện có: {user_xp} XP)", ephemeral=True)
+                return
+            
+            # Prompt unlock
+            view = ConfirmUnlockView(self.cog, self.user_id, choice, req_money, self.view)
+            await interaction.response.send_message(f"🔓 Bạn có muốn mở khóa **{biome_data['name']}** với giá **{req_money:,} Coinz** {emojis.ANIMATED_EMOJI_COINZ} không?", view=view, ephemeral=True)
 
 class FishingView(discord.ui.View):
     def __init__(self, cog, user_id, current_biome, last_catch=None):
@@ -305,6 +455,14 @@ class FishingView(discord.ui.View):
             await interaction.followup.send(f"✅ Đã bán **{cnt}x cá** ({names_summary}) với giá **{total_val:,}** Coinz {emojis.ANIMATED_EMOJI_COINZ}", ephemeral=True)
         else:
              await interaction.response.send_message("❌ Cá này không còn trong túi đồ (có thể đã bán?)", ephemeral=True)
+
+    @discord.ui.button(label="Chuyển Vùng", style=discord.ButtonStyle.secondary, emoji="🗺️", row=1)
+    async def change_biome(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id: return
+        data = await self.cog.db.get_fishing_data(self.user_id)
+        stats = data.get("stats", {})
+        view = BiomeSelectView(self.cog, self.user_id, self.current_biome, stats)
+        await interaction.response.send_message("🗺️ **CHỌN ĐỊA ĐIỂM CÂU CÁ:**", view=view, ephemeral=True)
 
     @discord.ui.button(label="Đổi Mồi", style=discord.ButtonStyle.secondary, emoji="🪱", row=1)
     async def change_bait(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -466,10 +624,11 @@ class CauCaCog(commands.Cog):
         total_money = stats.get("lifetime_money", 0)
         
         owned_rods_count = 0
-        if "owned_rods" in data:
-            owned_rods_count = len(data["owned_rods"])
-        else:
-             if data.get("rod_type"): owned_rods_count = 1
+        rods_list = inv.get("rods", [])
+        if rods_list:
+            owned_rods_count = len(rods_list)
+        elif data.get("rod_type"): 
+             owned_rods_count = 1
         
         new_badges = []
         for key, info in BADGES.items():
@@ -491,7 +650,7 @@ class CauCaCog(commands.Cog):
             stats["badges"] = owned_badges
             await self.db.update_fishing_data(user_id, stats=stats)
             if channel:
-                desc = "\n".join([f"{b['emoji']} **{b['name']}**" for b in new_badges])
+                desc = "\n".join([f"{b['emoji']} **{b['name']}**\n*{b['desc']}*" for b in new_badges])
                 em = discord.Embed(title="🏅 HUY HIỆU MỚI!", description=f"Chúc mừng bạn đã đạt được:\n{desc}", color=discord.Color.orange())
                 try:
                     await channel.send(f"<@{user_id}>", embed=em)
@@ -511,36 +670,82 @@ class CauCaCog(commands.Cog):
         data = await self.db.get_fishing_data(user_id)
         inventory = data.get("inventory", {})
         stats = data.get("stats", {})
+
+        # === REQUIREMENTS CHECK ===
+        user_balance = await self.db.get_player_points(user_id, interaction.guild_id)
+        owned_rods = inventory.get("rods", [])
+        
+        # 1. New User: First Rod (Steel Rod - 5000 Coinz)
+        if not owned_rods:
+            if user_balance < 5000:
+                 msg = f"❌ Bạn là người mới? Bạn cần **5,000 Coinz** {emojis.ANIMATED_EMOJI_COINZ} để mua Cần Câu đầu tiên (Cần Thép)!"
+                 try: await interaction.response.send_message(msg, ephemeral=True)
+                 except: await interaction.followup.send(msg, ephemeral=True)
+                 return
+            
+            # Deduct & Unlock
+            await self.db.add_points(user_id, interaction.guild_id, -5000)
+            
+            # Update Inventory
+            if "rods" not in inventory: inventory["rods"] = []
+            inventory["rods"].append("Steel Rod")
+            # Also ensure Steel Rod is active
+            await self.db.update_fishing_data(user_id, rod_type="Steel Rod", inventory=inventory)
+            
+            try: await interaction.channel.send(f"🎉 **Chào mừng Newbie!** Hệ thống đã tự động mua **Cần Thép** (-5,000 Coinz {emojis.ANIMATED_EMOJI_COINZ}) cho bạn!")
+            except: pass
+            
+            # Refresh data
+            data = await self.db.get_fishing_data(user_id)
+            stats = data.get("stats", {})
+            inventory = data.get("inventory", {})
+
+        # 2. Fishing Cost (10 Coinz)
+        if user_balance < 10:
+             msg = f"❌ Bạn cần **10 Coinz** {emojis.ANIMATED_EMOJI_COINZ} chi phí cho mỗi lần câu!"
+             try: await interaction.response.send_message(msg, ephemeral=True)
+             except: await interaction.followup.send(msg, ephemeral=True)
+             return
+             
+        await self.db.add_points(user_id, interaction.guild_id, -10)
+        
+        # 3. Bait Check
+        if not stats.get("current_bait"):
+             msg = f"❌ Bạn chưa trang bị mồi câu! Hãy vào `/shop` để mua Mồi Giun và dùng `/inventory` để trang bị."
+             try: await interaction.response.send_message(msg, ephemeral=True)
+             except: await interaction.followup.send(msg, ephemeral=True)
+             return
         
         # Get Stats (Power/Luck)
         power, luck, data, current_bait_key = await self.get_stats_multiplier(user_id)
         
-        # Bait Consumption
+        # Bait Consumption Logic
         baits_inv = inventory.get("baits", {})
+        sub_bait_key = stats.get("magnet_sub_bait")
         bait_consumed = False
-        is_magnet = False
-        
-        if current_bait_key:
-            if baits_inv.get(current_bait_key, 0) > 0:
-                baits_inv[current_bait_key] -= 1
-                bait_consumed = True
-                bait_info = BAITS.get(current_bait_key)
-                if bait_info and bait_info.get("name") == "Nam Châm":
-                    is_magnet = True
+        is_magnet = (current_bait_key == "Magnet")
+        loops = 1
 
-                if baits_inv[current_bait_key] <= 0:
-                    stats["current_bait"] = None
-                    del baits_inv[current_bait_key]
-            else:
-                stats["current_bait"] = None
-                
+        if current_bait_key:
+             if baits_inv.get(current_bait_key, 0) > 0:
+                 baits_inv[current_bait_key] -= 1
+                 bait_consumed = True
+                 
+                 if baits_inv[current_bait_key] <= 0:
+                     if current_bait_key in baits_inv: del baits_inv[current_bait_key]
+                     stats["current_bait"] = None
+                 
+                 if is_magnet:
+                     loops = random.randint(2, 5) # Magnet: 2-5 fish
+             else:
+                 stats["current_bait"] = None
+                 is_magnet = False
+
         # Treasure Chance (2% + Luck/50)
         treasure_chance = 2 + (luck * 0.05)
-        # Cap treasure chance?
         treasure_found = False
         
         result_list = []
-        loops = random.randint(2, 4) if is_magnet else 1
         
         total_xp = 0
         total_val = 0
@@ -626,12 +831,28 @@ class CauCaCog(commands.Cog):
             desc_lines = []
             
             for _ in range(loops):
-                # Rarity selection
-                # Base weights: Common(60), Uncommon(25), Rare(10), Epic(4), Legendary(0.9), Mythical(0.1)
-                # Luck/Power affects weights? 
-                # Simple logic: Rarity Score = Random(0, 100) + Luck*0.2
+                # Calculate current catch stats (handles Magnet Sub-Bait)
+                eff_luck = luck
+                eff_power = power
                 
-                luck_bonus = luck * 0.15
+                # Logic for Sub-Bait (Magnet Only)
+                if is_magnet and sub_bait_key:
+                    if baits_inv.get(sub_bait_key, 0) > 0:
+                        baits_inv[sub_bait_key] -= 1
+                        if baits_inv[sub_bait_key] <= 0:
+                            if sub_bait_key in baits_inv: del baits_inv[sub_bait_key]
+                            stats["magnet_sub_bait"] = None
+                            
+                        sb_info = BAITS.get(sub_bait_key, {})
+                        eff_luck += sb_info.get("luck", 0)
+                        eff_power += sb_info.get("power", 0)
+                    else:
+                        stats["magnet_sub_bait"] = None
+
+                # Rarity selection
+                # Luck/Power affects weights? 
+                
+                luck_bonus = eff_luck * 0.15
                 roll = random.uniform(0, 100) + luck_bonus
                 
                 rarity = "Common"
@@ -657,13 +878,14 @@ class CauCaCog(commands.Cog):
                 
                 min_s = selected_fish['min_size']
                 max_s = selected_fish['max_size']
-                size = round(random.uniform(min_s, max_s) + (power * 0.05), 2)
+                size = round(random.uniform(min_s, max_s) + (eff_power * 0.05), 2)
                 
                 # Value calculation
                 # Value = Base * (Size / AvgSize) * RarityMult?
                 # Simplify: Value = Base + (Size * 2)
                 base_v = selected_fish['base_value']
-                val = int(base_v + (size * 5))
+                rarity_mul = RARITIES.get(rarity, {}).get("mul", 1.0)
+                val = int((base_v + (size * 5)) * rarity_mul)
                 
                 # Crit?
                 if random.random() < 0.05:
@@ -997,7 +1219,7 @@ class CauCaCog(commands.Cog):
             btn.callback = callback
             view.add_item(btn)
 
-        back_btn = discord.ui.Button(label="Trang Chủ", style=discord.ButtonStyle.secondary, emoji="🏠", row=2)
+        back_btn = discord.ui.Button(label="Trang Chủ", style=discord.ButtonStyle.secondary, emoji="🏠", row=4)
         async def back_callback(inter):
             if inter.user.id != interaction.user.id: return
             view = ShopSelectView(self)
