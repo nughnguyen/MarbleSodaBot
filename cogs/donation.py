@@ -117,8 +117,9 @@ class Donation(commands.Cog):
             # Assuming timestamps are stored in UTC
             threshold = (datetime.now(timezone.utc) - timedelta(minutes=10)).isoformat()
             
-            # Delete pending transactions created before the threshold
-            self.supabase.table('transactions').delete().eq('status', 'pending').lt('created_at', threshold).execute()
+            # Mark pending transactions as expired instead of deleting
+            # This preserves the record in case of late payment webhooks
+            self.supabase.table('transactions').update({'status': 'expired'}).eq('status', 'pending').lt('created_at', threshold).execute()
             
         except Exception as e:
             print(f"Error cleaning up expired transactions: {e}")
