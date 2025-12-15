@@ -62,7 +62,7 @@ class Donation(commands.Cog):
                             description=(
                                 f"Cảm ơn bạn đã ủng hộ!\n"
                                 f"Đơn hàng: `{txn_id}`\n"
-                                f"Số nhận: **{coinz:,} Coinz**"
+                                f"Số nhận: **{coinz:,} Coinz** {emojis.ANIMATED_EMOJI_COINZ}"
                             ),
                             color=config.COLOR_SUCCESS
                         )
