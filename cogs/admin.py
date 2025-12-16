@@ -194,7 +194,7 @@ class AdminCog(commands.Cog):
                     WHERE guild_id = 0
                 """)
                 
-                message = "✅ Đã reset thống kê game của TẤT CẢ thành viên (Coiz {emojis.ANIMATED_EMOJI_COIZ} được bảo toàn)!"
+                message = f"✅ Đã reset thống kê game của TẤT CẢ thành viên (Coiz {emojis.ANIMATED_EMOJI_COIZ} được bảo toàn)!"
             
             await db.commit()
         
