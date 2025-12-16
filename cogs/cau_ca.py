@@ -24,7 +24,7 @@ BIOMES = {
     "River": {
         "name": "Dòng Sông",
         "desc": "Nơi bắt đầu của mọi cần thủ.",
-        "req_xp": 0,
+        "req_level": 1,
         "req_money": 0,
         "emoji": emojis.BIOME_RIVER,
         "fish": [
@@ -38,7 +38,7 @@ BIOMES = {
     "Ocean": {
         "name": "Đại Dương",
         "desc": "Biển cả mênh mông với những loài cá lớn.",
-        "req_xp": 1000,
+        "req_level": 5,
         "req_money": 5000,
         "emoji": emojis.BIOME_OCEAN,
         "fish": [
@@ -53,7 +53,7 @@ BIOMES = {
     "Sky": {
         "name": "Vùng Trời",
         "desc": "Câu cá trên những đám mây.",
-        "req_xp": 5000,
+        "req_level": 10,
         "req_money": 20000,
         "emoji": emojis.BIOME_SKY,
         "fish": [
@@ -65,7 +65,7 @@ BIOMES = {
     "Volcano": {
         "name": "Núi Lửa",
         "desc": "Nóng bỏng tay, cá nướng tại chỗ.",
-        "req_xp": 20000,
+        "req_level": 20,
         "req_money": 50000,
         "emoji": emojis.BIOME_VOLCANIC,
         "fish": [
@@ -77,7 +77,7 @@ BIOMES = {
     "Space": {
         "name": "Vũ Trụ",
         "desc": "Không trọng lực, cá siêu hiếm.",
-        "req_xp": 50000,
+        "req_level": 40,
         "req_money": 100000,
         "emoji": emojis.BIOME_SPACE,
         "fish": [
@@ -89,7 +89,7 @@ BIOMES = {
     "Alien": {
         "name": "Hành Tinh Lạ",
         "desc": "Những sinh vật bí ẩn từ thế giới khác.",
-        "req_xp": 100000,
+        "req_level": 60,
         "req_money": 500000,
         "emoji": emojis.BIOME_ALIEN,
         "fish": [
@@ -359,9 +359,9 @@ class BiomeSelectView(discord.ui.View):
         b_data = BIOMES[self.selected_biome]
         embed = discord.Embed(title=f"{b_data['emoji']} {b_data['name']}", description=b_data['desc'], color=discord.Color.blue())
         
-        req_xp = b_data.get("req_xp", 0)
+        req_level = b_data.get("req_level", 1)
         req_money = b_data.get("req_money", 0)
-        status = "✅ Đã mở khóa" if self.selected_biome in self.unlocked else f"🔒 Yêu cầu: {req_xp} XP | {req_money:,} Coiz"
+        status = "✅ Đã mở khóa" if self.selected_biome in self.unlocked else f"🔒 Yêu cầu: Level {req_level} | {req_money:,} Coiz"
         embed.add_field(name="📍 Trạng Thái", value=status, inline=False)
         
         fish_list = b_data.get("fish", [])
@@ -380,11 +380,11 @@ class BiomeSelectView(discord.ui.View):
          b_key = self.selected_biome
          b_data = BIOMES[b_key]
          cost = b_data.get("req_money", 0)
-         req_xp = b_data.get("req_xp", 0)
-         user_xp = self.stats.get("xp", 0)
+         req_level = b_data.get("req_level", 1)
+         user_level = self.stats.get("level", 1)
          
-         if user_xp < req_xp:
-              await interaction.response.send_message(f"❌ Bạn chưa đủ kinh nghiệm! Cần {req_xp} XP.", ephemeral=True)
+         if user_level < req_level:
+              await interaction.response.send_message(f"❌ Bạn cấp thấp! Cần Level {req_level}.", ephemeral=True)
               return
               
          user_point = await self.cog.db.get_player_points(self.user_id, interaction.guild_id)
@@ -504,6 +504,160 @@ class FishingView(discord.ui.View):
 
         view = ChangeRodView(self.cog, self.user_id, owned, current_rod, self, durability_map)
         await interaction.response.send_message(f"👇 **Chọn cần câu ({len(owned)} sở hữu):**", view=view, ephemeral=True)
+
+
+class UseCharmSelect(discord.ui.Select):
+    def __init__(self, cog, user_id, charm_list):
+        self.cog = cog
+        self.user_id = user_id
+        options = []
+        for i, c in enumerate(charm_list[:25]):
+             c_info = CHARMS.get(c['key'], {"emoji": "🧿"})
+             minutes = c['duration'] // 60
+             options.append(discord.SelectOption(
+                label=f"{c.get('name', 'Bùa')} ({minutes}p)",
+                value=str(i),
+                description=f"Kích hoạt {minutes}p",
+                emoji=c_info.get('emoji', '🧿')
+             ))
+        super().__init__(placeholder="Chọn bùa để sử dụng...", min_values=1, max_values=1, options=options)
+
+    async def callback(self, interaction: discord.Interaction):
+        idx = int(self.values[0])
+        d = await self.cog.db.get_fishing_data(self.user_id)
+        i_v = d.get("inventory", {})
+        c_list = i_v.get("charms", [])
+        
+        if idx >= len(c_list):
+            await interaction.response.send_message("❌ Bùa không tồn tại hoặc lỗi dữ liệu!", ephemeral=True)
+            return
+        
+        try:
+            used_charm = c_list.pop(idx)
+        except IndexError:
+             await interaction.response.send_message("❌ Bùa không tồn tại!", ephemeral=True)
+             return
+        
+        # Activate
+        st = d.get("stats", {})
+        ac = st.get("active_charms", {})
+        
+        import time
+        now = int(time.time())
+        current_end = ac.get(used_charm['key'], now)
+        if current_end < now: current_end = now
+        
+        ac[used_charm['key']] = current_end + used_charm['duration']
+        st["active_charms"] = ac
+        
+        await self.cog.db.update_fishing_data(self.user_id, inventory=i_v, stats=st)
+        await interaction.response.send_message(f"✨ Đã kích hoạt **{used_charm['name']}**! Hiệu lực thêm {used_charm['duration']//60} phút.", ephemeral=True)
+
+class InventoryView(discord.ui.View):
+    def __init__(self, cog, user_id, user_data):
+        super().__init__(timeout=60)
+        self.cog = cog
+        self.user_id = user_id
+        self.user_data = user_data
+        
+        self.add_item(InventorySelect(cog, user_id, user_data))
+
+    @discord.ui.button(label="Dùng Bùa", style=discord.ButtonStyle.success, emoji="🔮", row=1)
+    async def use_charm(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id: return
+        
+        # Refresh data to be safe
+        d = await self.cog.db.get_fishing_data(self.user_id)
+        charms = d.get("inventory", {}).get("charms", [])
+        
+        if not charms:
+             await interaction.response.send_message("❌ Bạn không có bùa nào để dùng!", ephemeral=True)
+             return
+
+        view = discord.ui.View()
+        view.add_item(UseCharmSelect(self.cog, self.user_id, charms))
+        await interaction.response.send_message("👇 **Chọn bùa muốn kích hoạt:**", view=view, ephemeral=True)
+
+class InventorySelect(discord.ui.Select):
+    def __init__(self, cog, user_id, user_data):
+        self.cog = cog
+        self.user_id = user_id
+        self.user_data = user_data
+        
+        options = [
+            discord.SelectOption(label="Cần Câu", emoji="🎣", value="rod", description="Xem danh sách cần câu"),
+            discord.SelectOption(label="Cá", emoji="🐟", value="fish", description="Xem kho cá câu được"),
+            discord.SelectOption(label="Mồi Câu", emoji="🪱", value="bait", description="Xem số lượng mồi"),
+            discord.SelectOption(label="Bùa Chú", emoji="🧿", value="charm", description="Xem bùa buff")
+        ]
+        super().__init__(placeholder="Chọn túi đồ để xem...", min_values=1, max_values=1, options=options)
+
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user.id != self.user_id: 
+            return # Silent fail or ephemeral msg
+        
+        val = self.values[0]
+        inv = self.user_data.get("inventory", {})
+        embed = discord.Embed(title=f"🎒 TÚI ĐỒ", color=discord.Color.gold())
+        
+        if val == "rod":
+            rods_inv = inv.get("rods", [])
+            dura_map = inv.get("rod_durability", {})
+            current_rod = self.user_data.get("rod_type", "Plastic Rod")
+            
+            if rods_inv:
+                rod_lines = []
+                for r in rods_inv:
+                    r_info = RODS.get(r, {"name": r, "emoji": "🎣", "durability": None})
+                    dura = dura_map.get(r)
+                    max_d = r_info.get("durability")
+                    dura_str = "Vĩnh viễn"
+                    if max_d:
+                        cur = dura if dura is not None else max_d
+                        dura_str = f"{cur}/{max_d}"
+                    status = "✅ (Đang dùng)" if r == current_rod else ""
+                    rod_lines.append(f"{r_info['emoji']} **{r_info['name']}** {status} [Độ bền: {dura_str}]")
+                embed.description = "\n".join(rod_lines)
+            else:
+                embed.description = "Chưa sở hữu cần nào."
+
+        elif val == "fish":
+            fish_inv = inv.get("fish", {})
+            if fish_inv:
+                fish_list = []
+                total_val = 0
+                for name, info in fish_inv.items():
+                    count = info.get("count", 0)
+                    val_fish = info.get("total_value", 0)
+                    if count > 0:
+                        fish_list.append(f"• **{name}**: x{count} (Tổng: {val_fish:,} Coiz {emojis.ANIMATED_EMOJI_COIZ})")
+                        total_val += val_fish
+                embed.add_field(name=f"🐟 Cá ({total_val:,} Coiz {emojis.ANIMATED_EMOJI_COIZ})", value="\n".join(fish_list) if fish_list else "Trống", inline=False)
+            else:
+                embed.description = "Thùng cá trống rỗng."
+
+        elif val == "bait":
+            bait_inv = inv.get("baits", {})
+            bait_list = []
+            if bait_inv:
+                for k, v in bait_inv.items():
+                    b_info = BAITS.get(k, {"name": k, "emoji": "🪱"})
+                    if v > 0:
+                        bait_list.append(f"{b_info['emoji']} **{b_info['name']}**: {v}")
+            embed.description = "\n".join(bait_list) if bait_list else "Hết mồi câu rồi!"
+
+        elif val == "charm":
+            charm_inv = inv.get("charms", [])
+            if charm_inv:
+                charm_list = []
+                for i, c in enumerate(charm_inv):
+                    minutes = c['duration'] // 60
+                    charm_list.append(f"**{i+1}.** {c.get('name', 'Bùa')} ({minutes}p)")
+                embed.description = "\n".join(charm_list)
+            else:
+                embed.description = "Không có bùa nào."
+                
+        await interaction.response.edit_message(embed=embed)
 
     @discord.ui.button(label="Shop", style=discord.ButtonStyle.primary, emoji="🛒", row=1)
     async def open_shop(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -1018,9 +1172,38 @@ class CauCaCog(commands.Cog):
                 max_dura = RODS[rod_key]['durability']
                 dura_info = f" | Độ bền: {max(0, user_dura)}/{max_dura}"
             
-            embed.set_footer(text=f"Level: {stats.get('level', 1)} | XP: {stats.get('xp', 0)}{dura_info}")
+            # Level Up Logic
+            current_level = stats.get("level", 1)
+            current_xp = stats.get("xp", 0) + total_xp
             
-            stats["xp"] = stats.get("xp", 0) + total_xp
+            # Recalculate level
+            # Formula: Next Level XP = 1000 * (1.5 ^ (level - 1))
+            # Loop incase of multi-level up
+            leveled_up = False
+            while True:
+                req_xp = int(1000 * (1.5 ** (current_level - 1)))
+                if current_xp >= req_xp:
+                    current_xp -= req_xp
+                    current_level += 1
+                    leveled_up = True
+                else:
+                    break
+            
+            stats["xp"] = current_xp
+            stats["level"] = current_level
+            
+            if leveled_up:
+                try:
+                    await interaction.channel.send(f"🎉 **LEVEL UP!** Chúc mừng <@{user_id}> đã đạt **Level {current_level}**! Mở khóa các khu vực mới!")
+                except: pass
+
+            dura_info = ""
+            if user_dura is not None:
+                max_dura = RODS[rod_key]['durability']
+                dura_info = f" | Độ bền: {max(0, user_dura)}/{max_dura}"
+                
+            req_xp_next = int(1000 * (1.5 ** (current_level - 1)))
+            embed.set_footer(text=f"Level: {current_level} | XP: {current_xp}/{req_xp_next}{dura_info}")
 
         # Save Data
         save_kwargs = {"inventory": inventory, "stats": stats}
@@ -1360,153 +1543,57 @@ class CauCaCog(commands.Cog):
     @app_commands.command(name="inventory", description="Xem túi cá và vật phẩm")
     async def inventory(self, interaction: discord.Interaction):
         data = await self.db.get_fishing_data(interaction.user.id)
-        inv = data.get("inventory", {})
-        
-        embed = discord.Embed(title=f"🎒 TÚI ĐỒ CỦA {interaction.user.display_name.upper()}", color=discord.Color.gold())
-        
-        # Rods
-        rods_inv = inv.get("rods", [])
-        dura_map = inv.get("rod_durability", {})
-        # Ensure current rod is in list if not (migration safety)
         current_rod = data.get("rod_type", "Plastic Rod")
         
-        if rods_inv:
-            rod_lines = []
-            for r in rods_inv:
-                r_info = RODS.get(r, {"name": r, "emoji": "🎣", "durability": None})
-                dura = dura_map.get(r)
-                max_d = r_info.get("durability")
-                
-                dura_str = "Vĩnh viễn"
-                if max_d:
-                    cur = dura if dura is not None else max_d
-                    dura_str = f"{cur}/{max_d}"
-                
-                status = "✅ (Đang dùng)" if r == current_rod else ""
-                rod_lines.append(f"{r_info['emoji']} **{r_info['name']}** {status} [Độ bền: {dura_str}]")
-            
-            # If too many rods, truncate
-            rod_text = "\n".join(rod_lines)
-            if len(rod_text) > 1000: rod_text = rod_text[:950] + "\n... (Còn nữa)"
-            embed.add_field(name="🎣 Cần Câu", value=rod_text, inline=False)
-
-        # Fish
-        fish_inv = inv.get("fish", {})
-        if fish_inv:
-            fish_list = []
-            total_val = 0
-            for name, info in fish_inv.items():
-                count = info.get("count", 0)
-                val = info.get("total_value", 0)
-                if count > 0:
-                    fish_list.append(f"• **{name}**: x{count} (Tổng: {val:,} Coinz {emojis.ANIMATED_EMOJI_COIZ})")
-                    total_val += val
-            
-            fish_text = "\n".join(fish_list)
-            if len(fish_text) > 800: fish_text = fish_text[:800] + "..."
-            embed.add_field(name=f"🐟 Cá ({total_val:,} Coinz {emojis.ANIMATED_EMOJI_COIZ})", value=fish_text, inline=False)
-        else:
-            embed.add_field(name="🐟 Cá", value="Trống", inline=False)
-
-        # Baits
-        bait_inv = inv.get("baits", {})
-        bait_list = []
-        if bait_inv:
-            for k, v in bait_inv.items():
-                b_info = BAITS.get(k, {"name": k, "emoji": ""})
-                if v > 0:
-                    bait_list.append(f"{b_info['emoji']} **{b_info['name']}**: {v}")
+        # Default view shows current rod or summary?
+        # Let's show Rods by default or just the menu with instruction
         
-        if bait_list:
-            embed.add_field(name="🪱 Mồi Câu", value="\n".join(bait_list), inline=False)
-
-        # Charms
-        charm_inv = inv.get("charms", [])
-        if charm_inv:
-            charm_list = []
-            for i, c in enumerate(charm_inv):
-                minutes = c['duration'] // 60
-                charm_list.append(f"**{i+1}.** {c.get('name', 'Bùa')} ({minutes}p)")
-            
-            c_text = "\n".join(charm_list)
-            if len(c_text) > 800: c_text = c_text[:800] + "..."
-            embed.add_field(name="🧿 Bùa Chú (Chưa dùng)", value=c_text, inline=False)
+        embed = discord.Embed(title=f"🎒 TÚI ĐỒ CỦA {interaction.user.display_name.upper()}", description="Chọn danh mục bên dưới để xem chi tiết.", color=discord.Color.gold())
         
-        # Active Charms info
-        stats = data.get("stats", {})
-        active_charms = stats.get("active_charms", {})
-        
-        active_list = []
-        if active_charms:
-            import time
-            current = int(time.time())
-            for k, expire in active_charms.items():
-                remaining = expire - current
-                if remaining > 0:
-                     info = CHARMS.get(k, {"name": k})
-                     active_list.append(f"{info.get('emoji','')} **{info['name']}**: còn {remaining//60}p {remaining%60}s")
-            
-        if active_list:
-             embed.add_field(name="✨ Bùa Đang Kích Hoạt", value="\n".join(active_list), inline=False)
-             
-        stats = data.get("stats", {})
-        curr_bait_key = stats.get('current_bait')
-        curr_bait_name = BAITS.get(curr_bait_key, {}).get("name", "Không") if curr_bait_key else "Không"
-        embed.set_footer(text=f"Level: {stats.get('level', 1)} | XP: {stats.get('xp', 0)} | Mồi: {curr_bait_name}")
-
-        view = discord.ui.View()
-        
-        if charm_inv:
-            class UseCharmSelect(discord.ui.Select):
-                def __init__(self, cog, charm_list):
-                    self.cog = cog
-                    options = []
-                    for i, c in enumerate(charm_list[:25]):
-                         c_info = CHARMS.get(c['key'], {"emoji": "🧿"})
-                         minutes = c['duration'] // 60
-                         options.append(discord.SelectOption(
-                            label=f"{c.get('name', 'Bùa')} ({minutes}p)",
-                            value=str(i),
-                            description=f"Kích hoạt {minutes}p",
-                            emoji=c_info.get('emoji', '🧿')
-                         ))
-                    super().__init__(placeholder="Dùng bùa chú...", min_values=1, max_values=1, options=options)
-
-                async def callback(self, interaction: discord.Interaction):
-                    idx = int(self.values[0])
-                    # Reload data
-                    d = await self.cog.db.get_fishing_data(interaction.user.id)
-                    i_v = d.get("inventory", {})
-                    c_list = i_v.get("charms", [])
-                    
-                    if idx >= len(c_list):
-                        await interaction.response.send_message("❌ Bùa không tồn tại hoặc lỗi dữ liệu!", ephemeral=True)
-                        return
-                    
-                    try:
-                        used_charm = c_list.pop(idx)
-                    except IndexError:
-                         await interaction.response.send_message("❌ Bùa không tồn tại!", ephemeral=True)
-                         return
-                    
-                    # Activate
-                    st = d.get("stats", {})
-                    ac = st.get("active_charms", {})
-                    
-                    import time
-                    now = int(time.time())
-                    current_end = ac.get(used_charm['key'], now)
-                    if current_end < now: current_end = now
-                    
-                    ac[used_charm['key']] = current_end + used_charm['duration']
-                    st["active_charms"] = ac
-                    
-                    await self.cog.db.update_fishing_data(interaction.user.id, inventory=i_v, stats=st)
-                    await interaction.response.send_message(f"✨ Đã kích hoạt **{used_charm['name']}**! Hiệu lực thêm {used_charm['duration']//60} phút.", ephemeral=True)
-
-            view.add_item(UseCharmSelect(self, charm_inv))
-
+        view = InventoryView(self, interaction.user.id, data)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+    @app_commands.command(name="fish-stats", description="Xem thông số câu cá, Level, Rank")
+    async def fish_stats_cmd(self, interaction: discord.Interaction):
+        user_id = interaction.user.id
+        power, luck, data, bait_key = await self.get_stats_multiplier(user_id)
+        stats = data.get("stats", {})
+        
+        level = stats.get("level", 1)
+        xp = stats.get("xp", 0)
+        req_xp = int(1000 * (1.5 ** (level - 1)))
+        
+        # Calculate Rank
+        rank = await self.db.get_fishing_rank(user_id)
+        
+        # Progress Bar
+        pct = min(1.0, xp / max(1, req_xp))
+        bar_len = 10
+        filled = int(pct * bar_len)
+        bar = "🟦" * filled + "⬜" * (bar_len - filled)
+        
+        embed = discord.Embed(title=f"📊 THÔNG SỐ CẦN THỦ: {interaction.user.display_name}", color=discord.Color.purple())
+        
+        embed.add_field(name="🏅 Xếp Hạng", value=f"TOP **#{rank}**", inline=True)
+        embed.add_field(name="⭐ Cấp Độ", value=f"**Level {level}**\n{bar}\n({xp}/{req_xp} XP)", inline=True)
+        
+        # Buff Details
+        rod_key = data.get("rod_type", "Plastic Rod")
+        rod_info = RODS.get(rod_key, {})
+        
+        bait_info = BAITS.get(bait_key, {"power": 0, "luck": 0}) if bait_key else {"power": 0, "luck": 0}
+        
+        active_charms = stats.get("active_charms", {})
+        charm_power = power - rod_info.get("power",0) - bait_info.get("power",0)
+        charm_luck = luck - rod_info.get("luck",0) - bait_info.get("luck",0)
+
+        buff_desc = (
+            f"⚔️ **POWER: {power}** (Rod: {rod_info.get('power',0)} + Bait: {bait_info.get('power',0)} + Charm: {charm_power})\n"
+            f"🍀 **LUCK: {luck}** (Rod: {rod_info.get('luck',0)} + Bait: {bait_info.get('luck',0)} + Charm: {charm_luck})"
+        )
+        embed.add_field(name="💪 Chỉ Số Sức Mạnh", value=buff_desc, inline=False)
+        
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="sell", description="Bán tất cả cá")
     async def sell(self, interaction: discord.Interaction):

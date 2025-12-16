@@ -620,3 +620,44 @@ class DatabaseManager:
                     last_fished = excluded.last_fished
             """, (user_id, new_rod, new_boat, json.dumps(new_inventory), json.dumps(new_upgrades), json.dumps(new_stats)))
             await db.commit()
+    async def get_fishing_rank(self, user_id: int) -> int:
+        """Lấy thứ hạng câu cá của user dựa trên Level và XP"""
+        # Get user stats first
+        user_data = await self.get_fishing_data(user_id)
+        u_stats = user_data.get("stats", {})
+        u_lvl = u_stats.get("level", 1)
+        u_xp = u_stats.get("xp", 0)
+        
+        async with aiosqlite.connect(self.db_path) as db:
+            # Check JSON support by trying a dummy query or just catch exception
+            try:
+                # Count users with (Level > u_lvl) OR (Level == u_lvl AND XP > u_xp)
+                query = """
+                    SELECT COUNT(*) 
+                    FROM fishing_inventory 
+                    WHERE json_extract(stats, '$.level') > ? 
+                       OR (json_extract(stats, '$.level') = ? AND json_extract(stats, '$.xp') > ?)
+                """
+                async with db.execute(query, (u_lvl, u_lvl, u_xp)) as cursor:
+                    row = await cursor.fetchone()
+                    higher_rank_count = row[0] if row else 0
+                    return higher_rank_count + 1
+            except Exception as e:
+                # Fallback: load all
+                print(f"⚠️ SQL JSON Error (Rank): {e}")
+                async with db.execute("SELECT user_id, stats FROM fishing_inventory") as cursor:
+                    rows = await cursor.fetchall()
+                
+                # Sort descending
+                data = []
+                for r in rows:
+                    uid = r[0]
+                    s = json.loads(r[1])
+                    data.append((uid, s.get('level',1), s.get('xp',0)))
+                
+                data.sort(key=lambda x: (x[1], x[2]), reverse=True)
+                
+                for idx, item in enumerate(data):
+                    if item[0] == user_id:
+                        return idx + 1
+                return len(data) + 1
