@@ -319,10 +319,14 @@ class BiomeSelectView(discord.ui.View):
         super().__init__(timeout=60)
         self.cog = cog
         self.user_id = user_id
+        if current_biome not in BIOMES:
+            current_biome = "River"
         self.current_biome = current_biome
         self.selected_biome = current_biome
         self.stats = stats
         self.unlocked = stats.get("unlocked_biomes", ["River"])
+        if "River" not in self.unlocked:
+            self.unlocked.insert(0, "River")
         self.update_components()
 
     def update_components(self):
@@ -398,12 +402,13 @@ class BiomeSelectView(discord.ui.View):
 
 class FishingView(discord.ui.View):
     def __init__(self, cog, user_id, current_biome, last_catch=None):
-        # ... logic
         super().__init__(timeout=60)
         self.cog = cog
         self.user_id = user_id
+        if current_biome not in BIOMES:
+            current_biome = "River"
         self.current_biome = current_biome
-        self.last_catch = last_catch # list of {name, value} 
+        self.last_catch = last_catch
         self.message = None
 
     @discord.ui.button(label="Câu Tiếp", style=discord.ButtonStyle.success, emoji="🎣")
