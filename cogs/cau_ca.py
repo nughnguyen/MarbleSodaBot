@@ -309,7 +309,7 @@ class ConfirmUnlockView(discord.ui.View):
         # Re-check money
         bal = await self.cog.db.get_player_points(self.user_id, interaction.guild_id)
         if bal < self.cost:
-             await interaction.response.send_message(f"❌ Bạn không đủ tiền! Cần {self.cost:,} Coiz.", ephemeral=True)
+             await interaction.response.send_message(f"❌ Bạn không đủ tiền! Cần {self.cost:,.2f} Coiz.", ephemeral=True)
              return
 
         await self.cog.db.add_points(self.user_id, interaction.guild_id, -self.cost)
@@ -768,7 +768,7 @@ class CauCaCog(commands.Cog):
         for key, info in CHARMS.items():
             embed.add_field(
                 name=f"{info['emoji']} {info['name']}",
-                value=f"💰 Giá: **{info['price']:,}** Coiz {emojis.ANIMATED_EMOJI_COIZ}\n💪 Power: +{info['power']} | 🍀 Luck: +{info['luck']}\n⏱️ Thời gian: {info['duration_min']}-{info['duration_max']} phút",
+                value=f"💰 Giá: **{info['price']:,.2f}** Coiz {emojis.ANIMATED_EMOJI_COIZ}\n💪 Power: +{info['power']} | 🍀 Luck: +{info['luck']}\n⏱️ Thời gian: {info['duration_min']}-{info['duration_max']} phút",
                 inline=False
             )
             
@@ -1703,7 +1703,7 @@ class CauCaCog(commands.Cog):
         
         await self.check_badges(interaction.user.id, interaction.channel)
         
-        await interaction.response.send_message(f"💰 Đã bán sạch cá và nhận được **{total_payout:,}** Coinz {emojis.ANIMATED_EMOJI_COIZ}!")
+        await interaction.response.send_message(f"💰 Đã bán sạch cá và nhận được **{total_payout:,.2f}** Coinz {emojis.ANIMATED_EMOJI_COIZ}!")
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(CauCaCog(bot, bot.db))

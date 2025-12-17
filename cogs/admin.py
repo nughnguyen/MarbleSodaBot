@@ -119,7 +119,7 @@ class AdminCog(commands.Cog):
         self, 
         interaction: discord.Interaction,
         user: discord.User,
-        points: int
+        points: float
     ):
         """Owner thêm coiz cho người chơi"""
         if interaction.user.id != 561443914062757908:
@@ -129,7 +129,7 @@ class AdminCog(commands.Cog):
         await self.db.add_points(user.id, interaction.guild_id, points)
         
         await interaction.response.send_message(
-            f"✅ Đã thêm **{points}** Coiz {emojis.ANIMATED_EMOJI_COIZ} cho {user.mention}!",
+            f"✅ Đã thêm **{points:,.2f}** Coiz {emojis.ANIMATED_EMOJI_COIZ} cho {user.mention}!",
             ephemeral=True
         )
     
@@ -188,7 +188,7 @@ class AdminCog(commands.Cog):
         self, 
         interaction: discord.Interaction,
         user: discord.User,
-        points: int
+        points: float
     ):
         """Owner trừ coiz của người chơi"""
         if interaction.user.id != 561443914062757908:
@@ -203,7 +203,7 @@ class AdminCog(commands.Cog):
         await self.db.add_points(user.id, interaction.guild_id, -points)
         
         await interaction.response.send_message(
-            f"✅ Đã trừ **{points}** Coiz {emojis.ANIMATED_EMOJI_COIZ} của {user.mention}!",
+            f"✅ Đã trừ **{points:,.2f}** Coiz {emojis.ANIMATED_EMOJI_COIZ} của {user.mention}!",
             ephemeral=True
         )
 

@@ -31,7 +31,7 @@ class BetModal(discord.ui.Modal):
             if raw_value in ["all", "all in", "tat ca", "hết"]:
                  amount = self.current_balance
             else:
-                 amount = int(self.amount.value.replace(',', '').replace('.', ''))
+                 amount = float(self.amount.value.replace(',', '').replace('.', ''))
             
             if amount <= 0:
                 await interaction.response.send_message("❌ Số tiền cược phải lớn hơn 0!", ephemeral=True)
@@ -139,7 +139,7 @@ class BauCuaView(discord.ui.View):
         locked = self.locked_balance.get(user_id, 0)
         
         if (locked + amount) > points:
-            await interaction.response.send_message(f"❌ Bạn không đủ tiền! (Đã cược: {locked:,}, muốn cược thêm: {amount:,})", ephemeral=True)
+            await interaction.response.send_message(f"❌ Bạn không đủ tiền! (Đã cược: {locked:,.2f}, muốn cược thêm: {amount:,.2f})", ephemeral=True)
             return
 
         # Lock funds (don't deduct from DB yet)
@@ -157,8 +157,8 @@ class BauCuaView(discord.ui.View):
         remaining = points - new_locked
         
         await interaction.response.send_message(
-            f"✅ Đã cược **{amount:,}** coiz {emojis.ANIMATED_EMOJI_COIZ} vào {side_emoji} {side_name}!\n"
-            f"Số dư khả dụng: **{remaining:,}** coiz {emojis.ANIMATED_EMOJI_COIZ}", 
+            f"✅ Đã cược **{amount:,.2f}** coiz {emojis.ANIMATED_EMOJI_COIZ} vào {side_emoji} {side_name}!\n"
+            f"Số dư khả dụng: **{remaining:,.2f}** coiz {emojis.ANIMATED_EMOJI_COIZ}", 
             ephemeral=True
         )
         # Note: We do NOT call update_embed here anymore to avoid rate-limit clashes with the animation loop.
@@ -411,7 +411,7 @@ class BauCuaCog(commands.Cog):
                     
                     side_emoji = self.sides_map[side_name]
                     # Format: 🐟 x2 (+Bonus)
-                    win_details.append(f"{side_emoji} x{count} (+{profit:,})")
+                    win_details.append(f"{side_emoji} x{count} (+{profit:,.2f})")
 
             # Update DB if payout > 0
             if total_payout > 0:
@@ -423,7 +423,7 @@ class BauCuaCog(commands.Cog):
             if net_outcome > 0:
                 # Winner
                 detail_str = ", ".join(win_details)
-                line = f"🎉 {user_mention}: **+{net_outcome:,}** {emojis.ANIMATED_EMOJI_COIZ}\n   ╚ {detail_str}"
+                line = f"🎉 {user_mention}: **+{net_outcome:,.2f}** {emojis.ANIMATED_EMOJI_COIZ}\n   ╚ {detail_str}"
                 summary_lines.append(line)
             elif net_outcome == 0:
                 # Break even
@@ -432,7 +432,7 @@ class BauCuaCog(commands.Cog):
             else:
                 # Loser
                 # Show negative amount
-                line = f"💸 {user_mention}: **{net_outcome:,}** {emojis.ANIMATED_EMOJI_COIZ}"
+                line = f"💸 {user_mention}: **{net_outcome:,.2f}** {emojis.ANIMATED_EMOJI_COIZ}"
                 summary_lines.append(line)
 
         # Final Result Embed

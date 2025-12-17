@@ -42,7 +42,7 @@ class Donation(commands.Cog):
                 for txn in response.data:
                     txn_id = txn.get('id')
                     user_id = int(txn.get('user_id', 0))
-                    amount = int(txn.get('amount', 0))
+                    amount = float(txn.get('amount', 0))
                     
                     order_code = txn.get('description', 'N/A')
                     
@@ -102,11 +102,11 @@ class Donation(commands.Cog):
                             f"Cảm ơn bạn đã ủng hộ!\n"
                             f"Đơn hàng: `{txn_id}`\n"
                             f"Nội dung: `{order_code}`\n"
-                            f"Số nhận: **{total_coiz:,} Coiz** {emojis.ANIMATED_EMOJI_COIZ}"
+                            f"Số nhận: **{total_coiz:,.2f} Coiz** {emojis.ANIMATED_EMOJI_COIZ}"
                         )
                         
                         if bonus_coiz > 0:
-                            desc += f"\n*(Gốc: {base_coiz:,} + Bonus: {bonus_coiz:,})*"
+                            desc += f"\n*(Gốc: {base_coiz:,.2f} + Bonus: {bonus_coiz:,.2f})*"
                             
                         embed = discord.Embed(
                             title="✅ THANH TOÁN THÀNH CÔNG",
@@ -127,7 +127,7 @@ class Donation(commands.Cog):
                 for txn in response_late.data:
                     txn_id = txn.get('id')
                     user_id = int(txn.get('user_id', 0))
-                    amount = int(txn.get('amount', 0))
+                    amount = float(txn.get('amount', 0))
                     
                     if not user_id: continue
 
@@ -137,7 +137,7 @@ class Donation(commands.Cog):
                         embed = discord.Embed(
                             title="⚠️ GIAO DỊCH QUÁ HẠN",
                             description=(
-                                f"Hệ thống ghi nhận khoản chuyển **{amount:,} VND**.\n"
+                                f"Hệ thống ghi nhận khoản chuyển **{amount:,.2f} VND**.\n"
                                 f"Tuy nhiên, giao dịch này thực hiện **sau 10 phút** kể từ khi tạo lệnh.\n"
                                 f"Vậy nên chúng tôi không có trách nhiệm nếu giao dịch này không được tính."
                             ),
@@ -178,7 +178,7 @@ class Donation(commands.Cog):
 
     @app_commands.command(name="chuyen-coiz", description="Chuyển Coiz cho người khác")
     @app_commands.describe(member="Người nhận", amount="Số Coiz muốn chuyển")
-    async def transfer(self, interaction: discord.Interaction, member: discord.Member, amount: int):
+    async def transfer(self, interaction: discord.Interaction, member: discord.Member, amount: float):
         if not hasattr(self.bot, 'db'):
             await interaction.response.send_message("❌ Hệ thống cơ sở dữ liệu chưa sẵn sàng.", ephemeral=True)
             return
@@ -204,7 +204,7 @@ class Donation(commands.Cog):
                 description=(
                     f"Người gửi: {interaction.user.mention}\n"
                     f"Người nhận: {member.mention}\n"
-                    f"Số tiền: **{amount:,} Coiz** {emojis.ANIMATED_EMOJI_COIZ}"
+                    f"Số tiền: **{amount:,.2f} Coiz** {emojis.ANIMATED_EMOJI_COIZ}"
                 ),
                 color=config.COLOR_SUCCESS,
                 timestamp=discord.utils.utcnow()
@@ -216,7 +216,7 @@ class Donation(commands.Cog):
                 recv_embed = discord.Embed(
                     title="💰 BẠN NHẬN ĐƯỢC TIỀN",
                     description=(
-                        f"Bạn được {interaction.user.mention} chuyển **{amount:,} Coiz** {emojis.ANIMATED_EMOJI_COIZ}"
+                        f"Bạn được {interaction.user.mention} chuyển **{amount:,.2f} Coiz** {emojis.ANIMATED_EMOJI_COIZ}"
                     ),
                     color=config.COLOR_GOLD,
                     timestamp=discord.utils.utcnow()

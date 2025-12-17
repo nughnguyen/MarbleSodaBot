@@ -62,19 +62,11 @@ class LobbyCog(commands.Cog):
                  await interaction.response.send_message("❌ Lỗi: Game Xếp Hình chưa được load.", ephemeral=True)
 
         elif game_type == "cauca":
-            cc_cog = self.bot.get_cog("CauCaCog")
-            if cc_cog:
-                # Try common command names
-                if hasattr(cc_cog, "fishing"):
-                    await cc_cog.fishing.callback(cc_cog, interaction)
-                elif hasattr(cc_cog, "fishing_cmd"):
-                    await cc_cog.fishing_cmd.callback(cc_cog, interaction)
-                elif hasattr(cc_cog, "cau_ca"):
-                    await cc_cog.cau_ca.callback(cc_cog, interaction)
-                else:
-                     await interaction.response.send_message("❌ Lỗi: Không tìm thấy lệnh bắt đầu game Câu Cá.", ephemeral=True)
-            else:
-                 await interaction.response.send_message("❌ Lỗi: Game Câu Cá chưa được load.", ephemeral=True)
+             await interaction.response.send_message(
+                 "🎣 **Kênh này chuyên game Câu Cá!**\n"
+                 "Vui lòng sử dụng lệnh `/fish` để bắt đầu câu.", 
+                 ephemeral=True
+             )
 
         else:
              await interaction.response.send_message("❌ Loại game không hợp lệ.", ephemeral=True)

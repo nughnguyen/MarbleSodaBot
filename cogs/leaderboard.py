@@ -222,10 +222,10 @@ class LeaderboardCog(commands.Cog):
             # User said: "ngày đầu... 10000... ngày sau them 5% của ngay dau tien..."
             # Let's rely on 'last_daily_reward' from DB if streak continues.
             if last_daily_reward > 0:
-                reward = int(last_daily_reward * 1.05)
+                reward = last_daily_reward * 1.05
             else:
                  # Fallback if streak exists but no recorded reward (migration case)
-                reward = int(base_reward * (1.05 ** (new_streak - 1)))
+                reward = base_reward * (1.05 ** (new_streak - 1))
         
         # Cap reward? User didn't specify. Exponential growth is dangerous.
         # 10000 * 1.05^365 is huge. 1.05^30 = 4.3x. 1.05^365 ~ 54,000,000.
@@ -237,7 +237,7 @@ class LeaderboardCog(commands.Cog):
         # Response
         embed = discord.Embed(
             title="📅 Điểm danh hàng ngày",
-            description=f"Bạn đã nhận được **{reward:,}** Coiz {emojis.ANIMATED_EMOJI_COIZ}",
+            description=f"Bạn đã nhận được **{reward:,.2f}** Coiz {emojis.ANIMATED_EMOJI_COIZ}",
             color=config.COLOR_SUCCESS
         )
         if new_streak > 1:

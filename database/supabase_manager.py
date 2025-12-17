@@ -116,7 +116,7 @@ class SupabaseManager:
 
     # ===== PLAYER STATS METHODS =====
 
-    async def add_points(self, user_id: int, guild_id: int, points: int):
+    async def add_points(self, user_id: int, guild_id: int, points: float):
         """Thêm điểm (Global - guild_id=0)"""
         # Using RPC is better for atomic increment, but let's stick to fetch+update or upsert logic
         # Ideally, we create a stored procedure 'increment_points' in supabase, but user has to run SQL.
@@ -175,13 +175,13 @@ class SupabaseManager:
             
         await self._run_query(lambda: self.client.table('player_stats').upsert(stats).execute())
 
-    async def get_player_points(self, user_id: int, guild_id: int) -> int:
+    async def get_player_points(self, user_id: int, guild_id: int) -> float:
         res = await self._run_query(lambda: self.client.table('player_stats').select("total_points").eq('user_id', user_id).eq('guild_id', 0).execute())
         if res.data:
             return res.data[0].get('total_points', 0)
         return 0
 
-    async def transfer_points(self, from_user_id: int, to_user_id: int, amount: int) -> bool:
+    async def transfer_points(self, from_user_id: int, to_user_id: int, amount: float) -> bool:
         if amount <= 0: return False
         
         # Transaction-like sequence (Supabase REST API doesn't support transactions unless via RPC)
@@ -317,7 +317,7 @@ class SupabaseManager:
             return (r.get('last_daily_claim'), r.get('daily_streak', 0), r.get('last_daily_reward', 0))
         return (None, 0, 0)
         
-    async def update_daily(self, user_id: int, reward: int, streak: int):
+    async def update_daily(self, user_id: int, reward: float, streak: int):
         # Fetch current points to add
         current = await self.get_player_points(user_id, 0)
         new_total = current + reward
