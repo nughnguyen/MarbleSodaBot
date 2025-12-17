@@ -876,10 +876,11 @@ class CauCaCog(commands.Cog):
         
         # Check channel config
         config_channel = await self.db.get_channel_config(channel_id)
-        if config_channel != "fishing":
-            # Allow admin to fish anywhere or just ignore? Best to warn if command used directly.
-            # But process_fishing is internal.
-            pass
+        if config_channel != "cauca":
+            msg = "❌ Lệnh `/fish` chỉ hoạt động trong kênh Câu Cá chuyên biệt! Admin hãy dùng `/kenh-cau-ca` để cài đặt."
+            try: await interaction.response.send_message(msg, ephemeral=True)
+            except: await interaction.followup.send(msg, ephemeral=True)
+            return
 
         data = await self.db.get_fishing_data(user_id)
         inventory = data.get("inventory", {})
