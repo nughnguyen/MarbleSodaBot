@@ -890,28 +890,21 @@ class CauCaCog(commands.Cog):
         user_balance = await self.db.get_player_points(user_id, interaction.guild_id)
         owned_rods = inventory.get("rods", [])
         
-        # 1. New User: First Rod (Steel Rod - 5000 Coinz)
+        # 1. New User: First Rod (Plastic Rod - Free)
         if not owned_rods:
-            if user_balance < 5000:
-                 msg = f"❌ Bạn là người mới? Bạn cần **5,000 Coiz** {emojis.ANIMATED_EMOJI_COIZ} để mua Cần Câu đầu tiên (Cần Thép)!"
-                 try: await interaction.response.send_message(msg, ephemeral=True)
-                 except: await interaction.followup.send(msg, ephemeral=True)
-                 return
-            
-            # Deduct & Unlock
-            await self.db.add_points(user_id, interaction.guild_id, -5000)
-            
-            # Update Inventory
+            # Grant free Plastic Rod
             if "rods" not in inventory: inventory["rods"] = []
-            inventory["rods"].append("Steel Rod")
-            # Initialize durability
+            if "Plastic Rod" not in inventory["rods"]:
+                inventory["rods"].append("Plastic Rod")
+            
+            # Initialize durability (Plastic Rod is usually infinite/None, but we can set it if needed)
             if "rod_durability" not in inventory: inventory["rod_durability"] = {}
-            inventory["rod_durability"]["Steel Rod"] = RODS["Steel Rod"]["durability"]
+            # RODS["Plastic Rod"]["durability"] is likely None, which means infinite
             
-            # Also ensure Steel Rod is active
-            await self.db.update_fishing_data(user_id, rod_type="Steel Rod", inventory=inventory)
+            # Ensure Plastic Rod is active
+            await self.db.update_fishing_data(user_id, rod_type="Plastic Rod", inventory=inventory)
             
-            try: await interaction.channel.send(f"🎉 **Chào mừng Newbie!** Hệ thống đã tự động mua **Cần Thép** (-5,000 Coiz {emojis.ANIMATED_EMOJI_COIZ}) cho bạn!")
+            try: await interaction.channel.send(f"🎉 **Chào mừng Newbie!** Hệ thống đã tặng bạn **Cần Nhựa** (Miễn phí) để bắt đầu câu cá!")
             except: pass
             
             # Refresh data
