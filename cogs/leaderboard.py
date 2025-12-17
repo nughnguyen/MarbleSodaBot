@@ -37,90 +37,107 @@ class LeaderboardCog(commands.Cog):
         
         await interaction.response.send_message(embed=embed)
     
-    @app_commands.command(name="stats", description="📊 Xem thống kê cá nhân")
+    @app_commands.command(name="stats", description="📊 Xem hồ sơ và thống kê tổng hợp của người chơi")
     @app_commands.describe(user="Người chơi cần xem (để trống để xem của bạn)")
     async def stats(self, interaction: discord.Interaction, user: discord.User = None):
-        """Hiển thị thống kê của người chơi"""
+        """Hiển thị thống kê tổng hợp của người chơi (Tất cả các game)"""
         target_user = user or interaction.user
         
-        # Lấy stats từ database
+        # 1. Fetch General & Word Game Stats
         stats = await self.db.get_player_stats(target_user.id, interaction.guild_id)
-        
         if not stats:
-            await interaction.response.send_message(
-                f"🤷 {target_user.mention} chưa có tài khoản! Hãy chơi một game hoặc gõ /daily để tạo.",
-                ephemeral=True
-            )
-            return
+            # If no legacy stats but maybe has fishing stats? 
+            # We initialize default "empty" stats to allow showing fishing profile if exists.
+            stats = {
+                'total_points': await self.db.get_player_points(target_user.id, interaction.guild_id),
+                'games_played': 0, 'words_submitted': 0, 'correct_words': 0, 'wrong_words': 0,
+                'longest_word': "", 'longest_word_length': 0, 'daily_streak': 0
+            }
+
+        # 2. Fetch Fishing Stats
+        fishing_data = await self.db.get_fishing_data(target_user.id)
+        fishing_stats = fishing_data.get("stats", {})
+        fishing_rank = await self.db.get_fishing_rank(target_user.id)
         
-        # Tạo embed thống kê
+        # --- PREPARE DATA ---
+        
+        # General
         total_points = stats['total_points']
-        games_played = stats['games_played']
-        words_submitted = stats['words_submitted']
-        correct_words = stats['correct_words']
-        wrong_words = stats['wrong_words']
-        longest_word = stats['longest_word']
-        longest_word_length = stats['longest_word_length']
         daily_streak = stats.get('daily_streak', 0)
         
-        accuracy = (correct_words / words_submitted * 100) if words_submitted > 0 else 0
+        # Word Game
+        w_played = stats['games_played']
+        w_correct = stats['correct_words']
+        w_accuracy = (w_correct / stats['words_submitted'] * 100) if stats['words_submitted'] > 0 else 0
+        w_longest = stats['longest_word'].upper() if stats['longest_word'] else "Chưa có"
         
+        # Fishing
+        f_level = fishing_stats.get("level", 1)
+        f_xp = fishing_stats.get("xp", 0)
+        f_next_xp = int(1000 * (1.5 ** (f_level - 1)))
+        f_rod = fishing_data.get("rod_type", "Plastic Rod")
+        f_rod_info = config.RODS.get(f_rod) if hasattr(config, 'RODS') else None 
+        # Note: config might not have RODS if it's in cau_ca consts. Ideally we import from cau_ca or utils. 
+        # But importing cogs is circular. Let's just stringify or peek DB.
+        # We can use emoji maps if available in utils.
+        
+        # --- BUILD EMBED ---
         embed = discord.Embed(
-            title=f"📊 Thống kê của {target_user.display_name}",
+            title=f"👤 HỒ SƠ NGƯỜI CHƠI: {target_user.display_name.upper()}",
+            description=f"Thành viên của **{interaction.guild.name}**",
             color=config.COLOR_INFO
         )
-        
         embed.set_thumbnail(url=target_user.display_avatar.url)
         
-        embed.add_field(
-            name="🏆 Tổng Coiz",
-            value=f"**{total_points:,}** Coiz {emojis.ANIMATED_EMOJI_COIZ}",
-            inline=True
+        # --- SECTION: ECONOMY ---
+        eco_text = (
+            f"💰 **Tài Sản:** {total_points:,.2f} Coiz {emojis.ANIMATED_EMOJI_COIZ}\n"
+            f"📅 **Daily Streak:** {daily_streak} ngày {emojis.STREAK}"
         )
+        embed.add_field(name="🏦 KINH TẾ", value=eco_text, inline=False)
+        
+        # --- SECTION: WORD GAME ---
+        word_text = (
+            f"🎮 **Số Game:** {w_played}\n"
+            f"🎯 **Chính Xác:** {w_accuracy:.1f}%\n"
+            f"📝 **Từ Dài Nhất:** {w_longest}"
+        )
+        embed.add_field(name="🔤 GAME NỐI TỪ", value=word_text, inline=True)
+        
+        # --- SECTION: FISHING ---
+        # Generate Progress Bar for XP
+        pct = min(1.0, f_xp / max(1, f_next_xp))
+        bar_len = 8
+        filled = int(pct * bar_len)
+        bar = "🟦" * filled + "⬜" * (bar_len - filled)
+        
+        fish_text = (
+            f"⭐ **Level:** {f_level} (Rank #{fishing_rank})\n"
+            f"🧩 **XP:** {bar} ({f_xp:,}/{f_next_xp:,})\n"
+            f"🎣 **Cần Chính:** {f_rod}"
+        )
+        embed.add_field(name="🐟 GAME CÂU CÁ", value=fish_text, inline=True)
+        
+        # --- SECTION: BADGES / ACHIEVEMENTS (Optional) ---
+        # Collect badges from fishing stats
+        badges = fishing_stats.get("badges", [])
+        if badges:
+            # Simple icon list to save space
+            # We assume we can't easily map back to Badge Objects without import, 
+            # but we know badge keys.
+            badge_str = ""
+            count = 0
+            for b_key in badges:
+                # Try simple mapping or just count
+                badge_str += "🏅 " 
+                count += 1
+                if count >= 5: 
+                    badge_str += "..."
+                    break
+            
+            embed.add_field(name=f"🏆 THÀNH TỰU ({len(badges)})", value=f"Đã đạt {len(badges)} huy hiệu câu cá!", inline=False)
 
-        embed.add_field(
-            name="📅 Daily Streak",
-            value=f"**{daily_streak}** ngày {emojis.STREAK}",
-            inline=True
-        )
-        
-        embed.add_field(
-            name="🎮 Số Game Đã Chơi",
-            value=f"**{games_played}** game",
-            inline=True
-        )
-        
-        embed.add_field(
-            name="✍️ Tổng Từ Gửi",
-            value=f"**{words_submitted}** từ",
-            inline=True
-        )
-        
-        embed.add_field(
-            name="✅ Từ Đúng",
-            value=f"**{correct_words}** từ",
-            inline=True
-        )
-        
-        embed.add_field(
-            name="❌ Từ Sai",
-            value=f"**{wrong_words}** từ",
-            inline=True
-        )
-        
-        embed.add_field(
-            name="🎯 Độ Chính Xác",
-            value=f"**{accuracy:.1f}%**",
-            inline=True
-        )
-         
-        embed.add_field(
-            name="🔥 Từ Dài Nhất",
-            value=f"**{longest_word.upper()}** ({longest_word_length} ký tự)" if longest_word else "Chưa có",
-            inline=False
-        )
-
-        embed.set_footer(text="Gõ /daily mỗi ngày để nhận coiz miễn phí!")
+        embed.set_footer(text=f"ID: {target_user.id} | Gõ /help để xem danh sách lệnh")
         
         await interaction.response.send_message(embed=embed)
     

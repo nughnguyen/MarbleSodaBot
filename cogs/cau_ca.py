@@ -28,11 +28,17 @@ BIOMES = {
         "req_money": 0,
         "emoji": emojis.BIOME_RIVER,
         "fish": [
-            {"name": "Cá Chép", "base_value": 5, "min_size": 10, "max_size": 30, "emoji": emojis.FISH_RAW},
-            {"name": "Cá Vàng", "base_value": 15, "min_size": 5, "max_size": 15, "emoji": emojis.FISH_GOLDFISH},
-            {"name": "Cá Hồi", "base_value": 25, "min_size": 30, "max_size": 60, "emoji": emojis.FISH_SALMON},
-            {"name": "Cá Tuyết", "base_value": 30, "min_size": 40, "max_size": 80, "emoji": emojis.FISH_COD},
-            {"name": "Cua", "base_value": 20, "min_size": 5, "max_size": 15, "emoji": emojis.FISH_CRAB},
+            {"name": "Cá Chép", "base_value": 10, "min_size": 10, "max_size": 30, "emoji": emojis.FISH_RAW, "spawn_rate": 35},
+            {"name": "Cá Diếp", "base_value": 20, "min_size": 5, "max_size": 20, "emoji": emojis.FISH_GOLDFISH, "spawn_rate": 30},
+            {"name": "Cá Hồi", "base_value": 30, "min_size": 30, "max_size": 60, "emoji": emojis.FISH_SALMON, "spawn_rate": 20},
+            {"name": "Cá Tuyết", "base_value": 40, "min_size": 40, "max_size": 80, "emoji": emojis.FISH_COD, "spawn_rate": 10},
+            {"name": "Cua", "base_value": 30, "min_size": 5, "max_size": 30, "emoji": emojis.FISH_CRAB, "spawn_rate": 5},
+            {"name": "Tôm", "base_value": 30, "min_size": 5, "max_size": 30, "emoji": emojis.FISH_SHRIMP, "spawn_rate": 5},
+            {"name": "Cá Koi", "base_value": 10000000, "min_size": 30, "max_size": 100, "emoji": emojis.KING_RIVER1, "spawn_rate": 0.02},
+            {"name": "Cá Vàng", "base_value": 2500000, "min_size": 5, "max_size": 30, "emoji": emojis.KING_RIVER2, "spawn_rate": 0.2},
+            {"name": "Mega Gyarados", "base_value": 50000000, "min_size": 300, "max_size": 1000, "emoji": emojis.KING_RIVER3, "spawn_rate": 0.01},
+            {"name": "Cá Mặt Trăng", "base_value": 100000, "min_size": 20, "max_size": 60, "emoji": emojis.KING_RIVER4, "spawn_rate": 0.05},
+            {"name": "Cá Xương", "base_value": 500000, "min_size": 5, "max_size": 30, "emoji": emojis.KING_RIVER5, "spawn_rate": 0.2},
         ]
     },
     "Ocean": {
@@ -42,12 +48,17 @@ BIOMES = {
         "req_money": 50000,
         "emoji": emojis.BIOME_OCEAN,
         "fish": [
-            {"name": "Cá Nhiệt Đới", "base_value": 50, "min_size": 10, "max_size": 30, "emoji": emojis.FISH_TROPICAL},
-            {"name": "Cá Ngừ", "base_value": 100, "min_size": 50, "max_size": 150, "emoji": emojis.FISH_TUNA},
-            {"name": "Cá Mập", "base_value": 300, "min_size": 200, "max_size": 500, "emoji": emojis.FISH_SHARK},
-            {"name": "Cá Heo", "base_value": 500, "min_size": 150, "max_size": 300, "emoji": emojis.FISH_DOLPHIN},
-            {"name": "Rùa Biển", "base_value": 200, "min_size": 50, "max_size": 100, "emoji": emojis.FISH_TURTLE},
-            {"name": "Mực Ống", "base_value": 80, "min_size": 20, "max_size": 60, "emoji": emojis.FISH_SQUID},
+            {"name": "Cá Nhiệt Đới", "base_value": 50, "min_size": 10, "max_size": 30, "emoji": emojis.FISH_TROPICAL, "spawn_rate": 35},
+            {"name": "Cá Ngừ", "base_value": 100, "min_size": 50, "max_size": 150, "emoji": emojis.FISH_TUNA, "spawn_rate": 25},
+            {"name": "Cá Mập", "base_value": 300, "min_size": 200, "max_size": 500, "emoji": emojis.FISH_SHARK, "spawn_rate": 5},
+            {"name": "Cá Heo", "base_value": 500, "min_size": 150, "max_size": 300, "emoji": emojis.FISH_DOLPHIN, "spawn_rate": 10},
+            {"name": "Rùa Biển", "base_value": 200, "min_size": 50, "max_size": 100, "emoji": emojis.FISH_TURTLE, "spawn_rate": 15},
+            {"name": "Mực Ống", "base_value": 80, "min_size": 20, "max_size": 60, "emoji": emojis.FISH_SQUID, "spawn_rate": 10},
+            {"name": "Baby Dory", "base_value": 500000, "min_size": 5, "max_size": 30, "emoji": emojis.KING_OCEAN1, "spawn_rate": 0.05},
+            {"name": "Love Shark", "base_value": 25000000, "min_size": 200, "max_size": 800, "emoji": emojis.KING_OCEAN2, "spawn_rate": 0.02},
+            {"name": "Ngọc Trai", "base_value": 10000000, "min_size": 10, "max_size": 50, "emoji": emojis.KING_OCEAN3, "spawn_rate": 0.05},
+            {"name": "Jellyfish", "base_value": 100000, "min_size": 50, "max_size": 100, "emoji": emojis.KING_OCEAN4, "spawn_rate": 0.05},
+            {"name": "Aquaman", "base_value": 50000000, "min_size": 150, "max_size": 200, "emoji": emojis.KING_OCEAN5, "spawn_rate": 0.01},
         ]
     },
     "Sky": {
@@ -57,9 +68,14 @@ BIOMES = {
         "req_money": 100000,
         "emoji": emojis.BIOME_SKY,
         "fish": [
-            {"name": "Cá Cầu Vồng", "base_value": 800, "min_size": 30, "max_size": 100, "emoji": emojis.FISH_RAINBOW},
-            {"name": "Cá Azure", "base_value": 1000, "min_size": 40, "max_size": 120, "emoji": emojis.FISH_AZURE},
-            {"name": "Cá Kim Cương", "base_value": 2000, "min_size": 20, "max_size": 50, "emoji": emojis.FISH_DIAMOND},
+            {"name": "Cá Cầu Vồng", "base_value": 800, "min_size": 30, "max_size": 100, "emoji": emojis.FISH_RAINBOW, "spawn_rate": 50},
+            {"name": "Cá Azure", "base_value": 1000, "min_size": 40, "max_size": 120, "emoji": emojis.FISH_AZURE, "spawn_rate": 35},
+            {"name": "Cá Kim Cương", "base_value": 2000, "min_size": 20, "max_size": 50, "emoji": emojis.FISH_DIAMOND, "spawn_rate": 15},
+            {"name": "Tiêm Kích F16", "base_value": 20000000, "min_size": 1000, "max_size": 2000, "emoji": emojis.KING_SKY1, "spawn_rate": 0.01},
+            {"name": "Phoenix", "base_value": 50000000, "min_size": 300, "max_size": 1000, "emoji": emojis.KING_SKY2, "spawn_rate": 0.005},
+            {"name": "Neon Dragon", "base_value": 100000000, "min_size": 500, "max_size": 2000, "emoji": emojis.KING_SKY3, "spawn_rate": 0.005},
+            {"name": "Mây", "base_value": 10000000, "min_size": 100, "max_size": 500, "emoji": emojis.KING_SKY4, "spawn_rate": 0.5},
+            {"name": "Cầu Vồng", "base_value": 10000000, "min_size": 100, "max_size": 500, "emoji": emojis.KING_SKY5, "spawn_rate": 0.5},
         ]
     },
     "Volcano": {
@@ -69,9 +85,14 @@ BIOMES = {
         "req_money": 500000,
         "emoji": emojis.BIOME_VOLCANIC,
         "fish": [
-            {"name": "Cá Nóng", "base_value": 1500, "min_size": 30, "max_size": 80, "emoji": emojis.FISH_HOTCOD},
-            {"name": "Cá Dung Nham", "base_value": 3000, "min_size": 50, "max_size": 150, "emoji": emojis.FISH_LAVAFISH},
-            {"name": "Cá Nóc Lửa", "base_value": 4000, "min_size": 40, "max_size": 90, "emoji": emojis.FISH_FIREPUFFER},
+            {"name": "Cá Nóng", "base_value": 1500, "min_size": 30, "max_size": 80, "emoji": emojis.FISH_HOTCOD, "spawn_rate": 50},
+            {"name": "Cá Dung Nham", "base_value": 3000, "min_size": 50, "max_size": 150, "emoji": emojis.FISH_LAVAFISH, "spawn_rate": 35},
+            {"name": "Cá Nóc Lửa", "base_value": 4000, "min_size": 40, "max_size": 90, "emoji": emojis.FISH_FIREPUFFER, "spawn_rate": 15},
+            {"name": "Altalavadrone", "base_value": 3000000, "min_size": 100, "max_size": 300, "emoji": emojis.KING_VOLCANIC1, "spawn_rate": 0.5},
+            {"name": "Fireheart", "base_value": 5000000, "min_size": 50, "max_size": 150, "emoji": emojis.KING_VOLCANIC2, "spawn_rate": 0.4},
+            {"name": "Netherstar", "base_value": 80000000, "min_size": 20, "max_size": 50, "emoji": emojis.KING_VOLCANIC3, "spawn_rate": 0.005},
+            {"name": "Netherite", "base_value": 50000000, "min_size": 30, "max_size": 80, "emoji": emojis.KING_VOLCANIC4, "spawn_rate": 0.05},
+            {"name": "Lavamerka", "base_value": 1000000, "min_size": 150, "max_size": 300, "emoji": emojis.KING_VOLCANIC5, "spawn_rate": 0.5},
         ]
     },
     "Space": {
@@ -81,9 +102,13 @@ BIOMES = {
         "req_money": 10000000,
         "emoji": emojis.BIOME_SPACE,
         "fish": [
-            {"name": "Cá Vũ Trụ", "base_value": 8000, "min_size": 100, "max_size": 300, "emoji": emojis.FISH_SPACE},
-            {"name": "Cua Không Gian", "base_value": 10000, "min_size": 50, "max_size": 120, "emoji": emojis.FISH_SPACE_CRAB},
-            {"name": "Cá Lục Bảo", "base_value": 15000, "min_size": 80, "max_size": 200, "emoji": emojis.FISH_EMERALD},
+            {"name": "Cá Vũ Trụ", "base_value": 8000, "min_size": 100, "max_size": 300, "emoji": emojis.FISH_SPACE, "spawn_rate": 50},
+            {"name": "Cua Không Gian", "base_value": 10000, "min_size": 50, "max_size": 120, "emoji": emojis.FISH_SPACE_CRAB, "spawn_rate": 35},
+            {"name": "Cá Lục Bảo", "base_value": 15000, "min_size": 80, "max_size": 200, "emoji": emojis.FISH_EMERALD, "spawn_rate": 15},
+            {"name": "Meteor", "base_value": 100000000, "min_size": 5000, "max_size": 50000, "emoji": emojis.KING_SPACE1, "spawn_rate": 0.02},
+            {"name": "Milky Way", "base_value": 500000000, "min_size": 100000, "max_size": 500000, "emoji": emojis.KING_SPACE2, "spawn_rate": 0.001},
+            {"name": "Lọ Điều Ước", "base_value": 50000000, "min_size": 10, "max_size": 40, "emoji": emojis.KING_SPACE3, "spawn_rate": 0.5},
+            {"name": "Astronaut", "base_value": 80000000, "min_size": 150, "max_size": 250, "emoji": emojis.KING_SPACE4, "spawn_rate": 0.5},
         ]
     },
     "Alien": {
@@ -93,36 +118,40 @@ BIOMES = {
         "req_money": 50000000,
         "emoji": emojis.BIOME_ALIEN,
         "fish": [
-            {"name": "Cá Ngoài Hành Tinh", "base_value": 25000, "min_size": 100, "max_size": 400, "emoji": emojis.FISH_ALIEN},
-            {"name": "Vệ Binh Biển", "base_value": 40000, "min_size": 200, "max_size": 600, "emoji": emojis.FISH_GUARDIAN},
-            {"name": "Axolotl Thần", "base_value": 50000, "min_size": 50, "max_size": 150, "emoji": emojis.FISH_AXOLOTL},
-            {"name": "Mực Lục Bảo", "base_value": 60000, "min_size": 300, "max_size": 800, "emoji": emojis.FISH_EMERALD_SQUID},
-            {"name": "Cá Ngựa Vằn", "base_value": 80000, "min_size": 100, "max_size": 200, "emoji": emojis.FISH_ZEBRA},
+            {"name": "Cá Ngoài Hành Tinh", "base_value": 25000, "min_size": 100, "max_size": 400, "emoji": emojis.FISH_ALIEN, "spawn_rate": 30},
+            {"name": "Vệ Binh Biển", "base_value": 40000, "min_size": 200, "max_size": 600, "emoji": emojis.FISH_GUARDIAN, "spawn_rate": 25},
+            {"name": "Axolotl Thần", "base_value": 50000, "min_size": 50, "max_size": 150, "emoji": emojis.FISH_AXOLOTL, "spawn_rate": 20},
+            {"name": "Mực Lục Bảo", "base_value": 60000, "min_size": 300, "max_size": 800, "emoji": emojis.FISH_EMERALD_SQUID, "spawn_rate": 15},
+            {"name": "Cá Ngựa Vằn", "base_value": 80000, "min_size": 100, "max_size": 200, "emoji": emojis.FISH_ZEBRA, "spawn_rate": 10},
+            {"name": "Alien Werk", "base_value": 200000000, "min_size": 100, "max_size": 300, "emoji": emojis.KING_ALIEN1, "spawn_rate": 0.05},
+            {"name": "Goku Ultra", "base_value": 1000000000, "min_size": 150, "max_size": 200, "emoji": emojis.KING_ALIEN2, "spawn_rate": 0.0001},
+            {"name": "Pink Among Us", "base_value": 10000000, "min_size": 50, "max_size": 150, "emoji": emojis.KING_ALIEN3, "spawn_rate": 0.1},
+            {"name": "Blueish UFO", "base_value": 150000000, "min_size": 500, "max_size": 2000, "emoji": emojis.KING_ALIEN4, "spawn_rate": 0.1},
         ]
     }
 }
 
 RODS = {
     "Plastic Rod":    {"name": "Cần Nhựa",       "price": 0,          "power": 0,    "luck": 0,   "emoji": emojis.ROD_PLASTIC, "durability": None},
-    "Steel Rod":      {"name": "Cần Thép",       "price": 5000,       "power": 10,   "luck": 5,   "emoji": emojis.ROD_STEEL, "durability": 50},
-    "Alloy Rod":      {"name": "Cần Hợp Kim",    "price": 12000,      "power": 18,   "luck": 10,  "emoji": emojis.ROD_ALLOY, "durability": 80},
-    "Fiberglass Rod": {"name": "Cần Sợi Thủy Tinh", "price": 18000,   "power": 22,   "luck": 12,  "emoji": emojis.ROD_FIBERGLASS, "durability": 100},
-    "Golden Rod":     {"name": "Cần Vàng",       "price": 25000,      "power": 30,   "luck": 20,  "emoji": emojis.ROD_GOLDEN, "durability": 150},
-    "Floating Rod":   {"name": "Cần Nổi",        "price": 40000,      "power": 40,   "luck": 25,  "emoji": emojis.ROD_FLOATING, "durability": 180},
-    "Heavy Rod":      {"name": "Cần Hạng Nặng",  "price": 60000,      "power": 55,   "luck": 15,  "emoji": emojis.ROD_HEAVY, "durability": 200},
-    "Heavier Rod":    {"name": "Cần Siêu Nặng",  "price": 80000,      "power": 70,   "luck": 20,  "emoji": emojis.ROD_HEAVIER, "durability": 220},
-    "Lava Rod":       {"name": "Cần Dung Nham",  "price": 100000,     "power": 85,   "luck": 30,  "emoji": emojis.ROD_LAVA, "durability": 250},
-    "Magma Rod":      {"name": "Cần Magma",      "price": 150000,     "power": 100,  "luck": 35,  "emoji": emojis.ROD_MAGMA, "durability": 300},
+    "Steel Rod":      {"name": "Cần Thép",       "price": 10000,       "power": 10,   "luck": 5,   "emoji": emojis.ROD_STEEL, "durability": 50},
+    "Alloy Rod":      {"name": "Cần Hợp Kim",    "price": 20000,      "power": 18,   "luck": 10,  "emoji": emojis.ROD_ALLOY, "durability": 80},
+    "Fiberglass Rod": {"name": "Cần Sợi Thủy Tinh", "price": 40000,   "power": 22,   "luck": 12,  "emoji": emojis.ROD_FIBERGLASS, "durability": 100},
+    "Golden Rod":     {"name": "Cần Vàng",       "price": 80000,      "power": 30,   "luck": 20,  "emoji": emojis.ROD_GOLDEN, "durability": 150},
+    "Floating Rod":   {"name": "Cần Nổi",        "price": 100000,      "power": 40,   "luck": 25,  "emoji": emojis.ROD_FLOATING, "durability": 180},
+    "Heavy Rod":      {"name": "Cần Hạng Nặng",  "price": 130000,      "power": 55,   "luck": 15,  "emoji": emojis.ROD_HEAVY, "durability": 200},
+    "Heavier Rod":    {"name": "Cần Siêu Nặng",  "price": 150000,      "power": 70,   "luck": 20,  "emoji": emojis.ROD_HEAVIER, "durability": 220},
+    "Lava Rod":       {"name": "Cần Dung Nham",  "price": 180000,     "power": 85,   "luck": 30,  "emoji": emojis.ROD_LAVA, "durability": 250},
+    "Magma Rod":      {"name": "Cần Magma",      "price": 200000,     "power": 100,  "luck": 35,  "emoji": emojis.ROD_MAGMA, "durability": 300},
     "Oceanium Rod":   {"name": "Cần Đại Dương",  "price": 250000,     "power": 120,  "luck": 50,  "emoji": emojis.ROD_OCEANIUM, "durability": 400},
     "Sky Rod":        {"name": "Cần Bầu Trời",   "price": 500000,     "power": 150,  "luck": 60,  "emoji": emojis.ROD_SKY, "durability": 500},
     "Meteor Rod":     {"name": "Cần Thiên Thạch","price": 800000,     "power": 180,  "luck": 70,  "emoji": emojis.ROD_METEOR, "durability": 600},
-    "Space Rod":      {"name": "Cần Vũ Trụ",     "price": 2000000,    "power": 250,  "luck": 100, "emoji": emojis.ROD_SPACE, "durability": 800},
-    "Superium Rod":   {"name": "Cần Siêu Cấp",   "price": 5000000,    "power": 350,  "luck": 150, "emoji": emojis.ROD_SUPERIUM, "durability": 1000},
-    "Diamond Rod":    {"name": "Cần Kim Cương",  "price": 8000000,    "power": 450,  "luck": 200, "emoji": emojis.ROD_DIAMOND, "durability": 1200},
-    "Alien Rod":      {"name": "Cần Alien",      "price": 12000000,   "power": 600,  "luck": 250, "emoji": emojis.ROD_ALIEN, "durability": 1500},
-    "Saltspreader":   {"name": "Cần Rắc Muối",   "price": 20000000,   "power": 750,  "luck": 300, "emoji": emojis.ROD_SALTSPREADER, "durability": 2000},
-    "Infinity Rod":   {"name": "Cần Vô Cực",     "price": 50000000,   "power": 1000, "luck": 500, "emoji": emojis.ROD_INFINITY, "durability": 5000},
-    "Donator Rod":    {"name": "Cần Nhà Tài Trợ","price": 0,          "power": 1500, "luck": 800, "emoji": emojis.ROD_DONATOR, "description": "Cần câu dành riêng cho Nhà Tài Trợ (Không thể mua)", "durability": None},
+    "Space Rod":      {"name": "Cần Vũ Trụ",     "price": 1000000,    "power": 300,  "luck": 250, "emoji": emojis.ROD_SPACE, "durability": 800},
+    "Superium Rod":   {"name": "Cần Siêu Cấp",   "price": 2000000,    "power": 500,  "luck": 500, "emoji": emojis.ROD_SUPERIUM, "durability": 1000},
+    "Diamond Rod":    {"name": "Cần Kim Cương",  "price": 3000000,    "power": 4500,  "luck": 1000, "emoji": emojis.ROD_DIAMOND, "durability": 1200},
+    "Alien Rod":      {"name": "Cần Alien",      "price": 5000000,   "power": 6000,  "luck": 2500, "emoji": emojis.ROD_ALIEN, "durability": 1500},
+    "Saltspreader":   {"name": "Cần Rắc Muối",   "price": 75000000,   "power": 7500,  "luck": 3000, "emoji": emojis.ROD_SALTSPREADER, "durability": 2000},
+    "Infinity Rod":   {"name": "Cần Vô Cực",     "price": 100000000,   "power": 10000, "luck": 5000, "emoji": emojis.ROD_INFINITY, "durability": 5000},
+    "Donator Rod":    {"name": "Cần Nhà Tài Trợ","price": 0,          "power": 50, "luck": 20, "emoji": emojis.ROD_DONATOR, "description": "Cần câu dành riêng cho Nhà Tài Trợ (Không thể mua)", "durability": None},
 }
 # Map old keys to new if necessary, but here we assume clean slate or migration
 ROD_LIST = list(RODS.keys())
@@ -139,6 +168,18 @@ BADGES = {
     "50Shades":  {"name": "50 Sắc Thái", "desc": "Sở hữu 20 loại Cần câu khác nhau", "emoji": emojis.BADGE_50_SHADES, "req_type": "rod_count", "req_val": 20},
     "Admin":     {"name": "Admin", "desc": "Dành cho Admin", "emoji": emojis.BADGE_ADMIN, "req_type": "admin", "req_val": 0},
     "Supporter": {"name": "Người Ủng Hộ", "desc": "Dành cho Donator", "emoji": emojis.BADGE_SUPPORTER, "req_type": "manual", "req_val": 0},
+    "DragonHunter": {"name": "Thợ Săn Rồng", "desc": "Sưu tập đủ 7 Viên Ngọc Rồng", "emoji": emojis.DRAGONBALL_FULL, "req_type": "dragon_balls", "req_val": 7},
+    "KingFisher": {"name": "Vua Câu Cá", "desc": "Câu được tất cả các loài Boss", "emoji": emojis.KING_ALIEN2, "req_type": "king_fish_all", "req_val": 0},
+}
+
+DRAGON_BALLS = {
+    1: {"name": "1 Sao", "emoji": emojis.DRAGONBALL_1},
+    2: {"name": "2 Sao", "emoji": emojis.DRAGONBALL_2},
+    3: {"name": "3 Sao", "emoji": emojis.DRAGONBALL_3},
+    4: {"name": "4 Sao", "emoji": emojis.DRAGONBALL_4},
+    5: {"name": "5 Sao", "emoji": emojis.DRAGONBALL_5},
+    6: {"name": "6 Sao", "emoji": emojis.DRAGONBALL_6},
+    7: {"name": "7 Sao", "emoji": emojis.DRAGONBALL_7},
 }
 
 BAITS = {
@@ -162,9 +203,9 @@ TREASURES = [
 ]
 
 CHARMS = {
-    "Lucky Charm": {"name": "Bùa May Mắn", "price": 5000, "power": 0, "luck": 50, "duration_min": 10, "duration_max": 30, "emoji": emojis.CHARM_GREEN},
-    "Power Charm": {"name": "Bùa Sức Mạnh", "price": 8000, "power": 50, "luck": 0, "duration_min": 10, "duration_max": 20, "emoji": emojis.CHARM_RED},
-    "Golden Charm": {"name": "Bùa Vàng", "price": 20000, "power": 30, "luck": 30, "duration_min": 5, "duration_max": 15, "emoji": emojis.CHARM_YELLOW},
+    "Lucky Charm": {"name": "Bùa May Mắn", "price": 20000, "power": 0, "luck": 50, "duration_min": 1, "duration_max": 60, "emoji": emojis.CHARM_GREEN},
+    "Power Charm": {"name": "Bùa Sức Mạnh", "price": 20000, "power": 50, "luck": 0, "duration_min": 1, "duration_max": 60, "emoji": emojis.CHARM_RED},
+    "Golden Charm": {"name": "Bùa Vàng", "price": 20000, "power": 50, "luck": 50, "duration_min": 1, "duration_max": 60, "emoji": emojis.CHARM_YELLOW},
 }
 
 class ChangeBaitView(discord.ui.View):
@@ -855,6 +896,26 @@ class CauCaCog(commands.Cog):
             if req_type == "total_fish" and total_caught >= val: awarded = True
             elif req_type == "total_earn" and total_money >= val: awarded = True
             elif req_type == "rod_count" and owned_rods_count >= val: awarded = True
+            elif req_type == "dragon_balls":
+                 uballs = inv.get("dragon_balls", [])
+                 if len(uballs) >= 7: awarded = True
+            elif req_type == "king_fish_all":
+                 # Check if user caught all Fish with very high rate (Kings)
+                 # We identify kings by spawn_rate <= 0.02 roughly, or by name match in BIOMES
+                 # Let's count distinct kings caught.
+                 
+                 # Get all King names
+                 all_kings = []
+                 for _, b_data in BIOMES.items():
+                     for f in b_data["fish"]:
+                         if f.get("spawn_rate", 100) <= 0.02:
+                             all_kings.append(f["name"])
+                 
+                 caught_kings = 0
+                 for k_name in all_kings:
+                     if k_name in fish_inv: caught_kings += 1
+                 
+                 if caught_kings >= len(all_kings) and len(all_kings) > 0: awarded = True
             
             if awarded:
                 owned_badges.append(key)
@@ -1042,7 +1103,8 @@ class CauCaCog(commands.Cog):
                 reward_msg = f"Bạn nhận được **{amount:,}** Coinz {emojis.ANIMATED_EMOJI_COIZ} từ rương!"
                 
             elif loot_type == "fish":
-                selected_fish = random.choice(fish_pool)
+                weights = [f.get("spawn_rate", 10) for f in fish_pool]
+                selected_fish = random.choices(fish_pool, weights=weights, k=1)[0]
                 min_qty = 1 + chest_idx
                 max_qty = 3 + (chest_idx * 2)
                 quantity = random.randint(min_qty, max_qty)
@@ -1088,8 +1150,34 @@ class CauCaCog(commands.Cog):
                 new_charm = {"key": c_key, "duration": duration_sec, "name": c_info["name"]}
                 inventory["charms"].append(new_charm)
                 
+                if "charms" not in inventory: inventory["charms"] = []
+                new_charm = {"key": c_key, "duration": duration_sec, "name": c_info["name"]}
+                inventory["charms"].append(new_charm)
+                
                 minutes = duration_sec // 60
                 reward_msg = f"Bạn nhận được **{c_info['emoji']} {c_info['name']}** ({minutes}p) từ rương!"
+
+            # DRAGON BALL DROP CHANCE
+            # 0.5% chance from any chest to get a random Dragon Ball
+            if random.random() < 0.005: 
+                ball_num = random.randint(1, 7)
+                user_balls = inventory.get("dragon_balls", [])
+                
+                if ball_num not in user_balls:
+                     user_balls.append(ball_num)
+                     user_balls.sort()
+                     inventory["dragon_balls"] = user_balls
+                     
+                     ball_emoji = DRAGON_BALLS[ball_num]["emoji"]
+                     reward_msg += f"\n\n🔥 **HUYỀN THOẠI!** Bạn đã tìm thấy **Ngọc Rồng {ball_num} Sao** {ball_emoji}! ({len(user_balls)}/7)"
+                     
+                     if len(user_balls) == 7:
+                         reward_msg += f"\n🐲 **BẠN ĐÃ CÓ ĐỦ 7 VIÊN NGỌC RỒNG!** Hãy dùng lệnh `/goi-rong` để triệu hồi Rồng Thần!"
+                else:
+                     # Duplicate ball reward? 
+                     # Maybe convert to money?
+                     reward_msg += f"\n\n🔸 Bạn tìm thấy Ngọc Rồng {ball_num} Sao, nhưng đã sở hữu rồi. (Nhận 100k Coiz an ủi)"
+                     await self.db.add_points(user_id, interaction.guild_id, 100000)
 
             embed = discord.Embed(title="🎁 KHO BÁU!", color=discord.Color.gold())
             embed.description = f"Bạn tìm thấy **{chest['emoji']} {chest['name']}**!\n{reward_msg}"
@@ -1117,6 +1205,16 @@ class CauCaCog(commands.Cog):
                     else:
                         stats["magnet_sub_bait"] = None
 
+                # MISS CHANCE (Tỉ lệ xảy cá)
+                # Base success: 70%. Luck improves it.
+                # Formula: 70 + (Luck * 0.2)
+                success_chance = 70 + (eff_luck * 0.2)
+                if success_chance > 100: success_chance = 100
+                
+                if random.uniform(0, 100) > success_chance:
+                    desc_lines.append("💨 **Hụt!** Cá đã trốn thoát...")
+                    continue
+
                 # Rarity selection
                 # Luck/Power affects weights? 
                 
@@ -1139,14 +1237,44 @@ class CauCaCog(commands.Cog):
                 
                 if not fish_pool: break
                 
-                selected_fish = random.choice(fish_pool)
-                # Size calculation
-                # Power affects size directly
-                # Size = Random(min, max) + Power * 0.1
+                # Apply weight selection based on 'spawn_rate' modified by Luck
+                # Strategy: If spawn_rate is low (rare fish), Luck boosts its weight more significantly.
+                weights = []
+                for f in fish_pool:
+                     base_rate = f.get("spawn_rate", 10)
+                     if base_rate <= 20: 
+                          # Boost rare fish: +2% weight per 1 Luck
+                          # Example: Luck 50 => +100% chance (double the rate)
+                          w = base_rate * (1 + (eff_luck * 0.02))
+                     else:
+                          # Common fish: Slight boost or neutral
+                          w = base_rate
+                     weights.append(w)
+                     
+                selected_fish = random.choices(fish_pool, weights=weights, k=1)[0]
                 
+                # Size calculation
+                # Power affects size directly and skews distribution towards Max Size
                 min_s = selected_fish['min_size']
                 max_s = selected_fish['max_size']
-                size = round(random.uniform(min_s, max_s) + (eff_power * 0.05), 2)
+                
+                # Calculate "Peak" of the size distribution based on Power
+                # Max power for scaling ~ 500 (can go higher but diminishes)
+                power_factor = min(1.0, eff_power / 500) 
+                
+                # If power is high, the "peak" probability moves towards max_s
+                # random.triangular(low, high, mode)
+                mode_s = min_s + (max_s - min_s) * (0.2 + 0.8 * power_factor) # At 0 power, peak is at 20%. At max, peak is at 100%.
+                
+                raw_size = random.triangular(min_s, max_s, mode_s)
+                
+                # "Limit Break": Power allows exceeding max size slightly
+                # 0.02% per Power point
+                final_size_mul = 1.0 + (eff_power * 0.0002)
+                size = round(raw_size * final_size_mul, 2)
+                
+                min_s = selected_fish['min_size']
+
                 
                 # Value calculation
                 # Value = Base * (Size / AvgSize) * RarityMult?
@@ -1667,6 +1795,64 @@ class CauCaCog(commands.Cog):
         embed.add_field(name="💪 Chỉ Số Sức Mạnh", value=buff_desc, inline=False)
         
         await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="goi-rong", description="Triệu hồi Rồng Thần (Cần đủ 7 viên ngọc rồng)")
+    async def summon_shenron(self, interaction: discord.Interaction):
+        data = await self.db.get_fishing_data(interaction.user.id)
+        inv = data.get("inventory", {})
+        user_balls = inv.get("dragon_balls", [])
+        
+        if len(user_balls) < 7:
+            await interaction.response.send_message(f"❌ Bạn chưa đủ 7 viên ngọc rồng! Hiện có: {len(user_balls)}/7", ephemeral=True)
+            return
+
+        # Modal to make wish
+        class WishModal(discord.ui.Modal):
+            def __init__(self, db, parent_cog):
+                super().__init__(title="🐲 ĐIỀU ƯỚC CỦA RỒNG THẦN")
+                self.db = db
+                self.parent_cog = parent_cog
+                
+                self.wish_amount = discord.ui.TextInput(
+                    label="Nhập số tiền bạn muốn (Tối đa 5 Tỷ)",
+                    placeholder="Ví dụ: 5000000000",
+                    min_length=1,
+                    max_length=15, # 5B is 10 digits
+                    required=True
+                )
+                self.add_item(self.wish_amount)
+
+            async def on_submit(self, inter: discord.Interaction):
+                try:
+                    amount_req = int(self.wish_amount.value.replace(".", "").replace(",", "")) # Handle basic formatting
+                    if amount_req <= 0: raise ValueError
+                    if amount_req > 5_000_000_000:
+                        await inter.response.send_message("❌ Rồng Thần bảo: 'Tham thì thâm! Ta chỉ cho tối đa 5 Tỷ thôi!'", ephemeral=True)
+                        return
+                        
+                    # Grant wish
+                    await self.db.add_points(inter.user.id, inter.guild_id, amount_req)
+                    
+                    # Consume balls
+                    d = await self.db.get_fishing_data(inter.user.id)
+                    inventory = d.get("inventory", {})
+                    inventory["dragon_balls"] = [] # Clear balls
+                    await self.db.update_fishing_data(inter.user.id, inventory=inventory)
+                    
+                    # Announcement Embed
+                    embed = discord.Embed(title="🐲 RỒNG THẦN ĐÃ XUẤT HIỆN!", description=f"**{inter.user.name}** đã tập hợp đủ 7 viên ngọc rồng và triệu hồi Rồng Thần!\n\n🌌 **ĐIỀU ƯỚC ĐÃ ĐƯỢC THỰC HIỆN:**\nNgười chơi nhận được **{amount_req:,}** Coinz {emojis.ANIMATED_EMOJI_COIZ}!", color=discord.Color.dark_green())
+                    embed.set_image(url="https://media1.tenor.com/m/YwWvG1yR2bAAAAAd/shenron-dragon-ball.gif") # Shenron GIF placeholder or emoji
+                    embed.set_thumbnail(url=inter.user.avatar.url if inter.user.avatar else None)
+                    
+                    # Ping everyone as requested
+                    # Using send_message limits us to current channel properties.
+                    # We send a standard message.
+                    await inter.response.send_message(content="@everyone", embed=embed)
+                    
+                except ValueError:
+                    await inter.response.send_message("❌ Số tiền không hợp lệ!", ephemeral=True)
+
+        await interaction.response.send_modal(WishModal(self.db, self))
 
     @app_commands.command(name="sell", description="Bán tất cả cá")
     async def sell(self, interaction: discord.Interaction):
