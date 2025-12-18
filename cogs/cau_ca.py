@@ -838,12 +838,18 @@ class CauCaCog(commands.Cog):
         charm_luck = 0
         expired_charms = []
         
+        charm_power = 0
+        charm_luck = 0
+        xp_mul = 1.0 # Default Multiplier
+        expired_charms = []
+        
         for c_key, expire_at in active_charms.items():
             if current_time < expire_at:
                 c_info = CHARMS.get(c_key)
                 if c_info:
-                    charm_power += c_info["power"]
-                    charm_luck += c_info["luck"]
+                    charm_power += c_info.get("power", 0)
+                    charm_luck += c_info.get("luck", 0)
+                    xp_mul = max(xp_mul, c_info.get("xp_mul", 1.0))
             else:
                 expired_charms.append(c_key)
         
@@ -855,8 +861,8 @@ class CauCaCog(commands.Cog):
             # We don't save DB here to avoid async write race conditions in tight loops, 
             # relying on next update. Or we can just let it update next time something is saved.
         
-        total_power = rod["power"] + bait["power"] + charm_power
-        total_luck = rod["luck"] + bait["luck"] + charm_luck
+        total_power = rod["power"] + bait.get("power", 0) + charm_power
+        total_luck = rod["luck"] + bait.get("luck", 0) + charm_luck
         
         return total_power, total_luck, data, bait_key, xp_mul
 
