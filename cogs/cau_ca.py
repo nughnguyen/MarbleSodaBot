@@ -183,7 +183,7 @@ DRAGON_BALLS = {
 }
 
 BAITS = {
-    "Worms":           {"name": "Mồi Giun",    "price": 50,     "power": 0,  "luck": 0,  "desc": "Mồi câu cơ bản.", "emoji": emojis.BAIT_WORM},
+    "Worms":           {"name": "Mồi Giun",    "price": 0,     "power": 0,  "luck": 0,  "desc": "Mồi câu cơ bản (Miễn phí).", "emoji": emojis.BAIT_WORM},
     "Cricket":         {"name": "Dế Mèn",      "price": 200,    "power": 5,  "luck": 2,  "desc": "Thu hút cá nhỏ.", "emoji": emojis.BAIT_CRICKET},
     "Leeches":         {"name": "Đỉa",         "price": 500,    "power": 8,  "luck": 4,  "desc": "Bám dính tốt.", "emoji": emojis.BAIT_LEECH},
     "Minnows":         {"name": "Cá Con",      "price": 1500,   "power": 12, "luck": 8,  "desc": "Dụ cá săn mồi.", "emoji": emojis.BAIT_MINNOW},
@@ -1058,10 +1058,15 @@ class CauCaCog(commands.Cog):
                  except: await interaction.followup.send(msg, view=view_bait, ephemeral=True)
                  return
              else:
-                 msg = f"❌ Bạn chưa có mồi câu nào! Hãy vào `/shop` để mua Mồi Giun."
-                 try: await interaction.response.send_message(msg, ephemeral=True)
-                 except: await interaction.followup.send(msg, ephemeral=True)
-                 return
+                 # Auto-equip free Worms
+                 if "baits" not in inventory: inventory["baits"] = {}
+                 inventory["baits"]["Worms"] = 50
+                 stats["current_bait"] = "Worms"
+                 await self.db.update_fishing_data(user_id, inventory=inventory, stats=stats)
+                 
+                 msg_auto = f"🪱 **Hết mồi?** Bot đã tự động trang bị **50x Mồi Giun** (Miễn phí) cho <@{user_id}>!"
+                 try: await interaction.channel.send(msg_auto)
+                 except: pass
         
         # Get Stats (Power/Luck)
         power, luck, data, current_bait_key, xp_mul = await self.get_stats_multiplier(user_id)
