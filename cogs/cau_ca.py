@@ -1846,7 +1846,7 @@ class CauCaCog(commands.Cog):
                     
                     # Announcement Embed
                     embed = discord.Embed(title="🐲 RỒNG THẦN ĐÃ XUẤT HIỆN!", description=f"**{inter.user.name}** đã tập hợp đủ 7 viên ngọc rồng và triệu hồi Rồng Thần!\n\n🌌 **ĐIỀU ƯỚC ĐÃ ĐƯỢC THỰC HIỆN:**\nNgười chơi nhận được **{amount_req:,}** Coinz {emojis.ANIMATED_EMOJI_COIZ}!", color=discord.Color.dark_green())
-                    embed.set_image(url="https://media1.tenor.com/m/GI3okMgQ0m4AAAAC/shenron-dragon-ball-z.gif") # Shenron GIF placeholder or emoji
+                    embed.set_image(url="https://cdn.discordapp.com/attachments/1305556786304127097/1451098687999578224/tenor.gif?ex=6944f077&is=69439ef7&hm=e0b76ba5377dbe0153382c5fde7b02c008ab0f5631fb0d7a46366e38dbf6ceea&") # Shenron GIF placeholder or emoji
                     embed.set_thumbnail(url=inter.user.avatar.url if inter.user.avatar else None)
                     
                     # Ping everyone as requested
