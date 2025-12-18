@@ -858,7 +858,7 @@ class CauCaCog(commands.Cog):
         total_power = rod["power"] + bait["power"] + charm_power
         total_luck = rod["luck"] + bait["luck"] + charm_luck
         
-        return total_power, total_luck, data, bait_key
+        return total_power, total_luck, data, bait_key, xp_mul
 
     async def charm_shop(self, interaction: discord.Interaction):
         embed = discord.Embed(title="🧿 CỬA HÀNG BÙA CHÚ", description="Mua bùa để tăng chỉ số trong thời gian ngắn! (Ngẫu nhiên 3-30p)", color=discord.Color.purple())
