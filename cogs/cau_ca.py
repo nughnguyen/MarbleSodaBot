@@ -12,12 +12,12 @@ from utils import emojis
 # --- CONSTANTS & CONFIGURATION ---
 
 RARITIES = {
-    "Common":    {"color": 0x95A5A6, "chance": 58, "mul": 1.0, "emoji": "⚪"},
-    "Uncommon":  {"color": 0x2ECC71, "chance": 23, "mul": 1.5, "emoji": "🟢"},
-    "Rare":      {"color": 0x3498DB, "chance": 12, "mul": 3.0, "emoji": "🔵"},
-    "Epic":      {"color": 0x9B59B6, "chance": 5,  "mul": 8.0, "emoji": "🟣"},
-    "Legendary": {"color": 0xF1C40F, "chance": 1.8, "mul": 20.0, "emoji": "🟡"},
-    "Mythical":  {"color": 0xE74C3C, "chance": 0.2, "mul": 100.0, "emoji": "🔴"}
+    "Common":    {"color": 0x95A5A6, "chance": 80, "mul": 1.0, "emoji": "⚪"},
+    "Uncommon":  {"color": 0x2ECC71, "chance": 30, "mul": 2.5, "emoji": "🟢"},
+    "Rare":      {"color": 0x3498DB, "chance": 10, "mul": 5.0, "emoji": "🔵"},
+    "Epic":      {"color": 0x9B59B6, "chance": 5,  "mul": 15.0, "emoji": "🟣"},
+    "Legendary": {"color": 0xF1C40F, "chance": 1, "mul": 50.0, "emoji": "🟡"},
+    "Mythical":  {"color": 0xE74C3C, "chance": 0.01, "mul": 500.0, "emoji": "🔴"}
 }
 
 BIOMES = {
@@ -32,8 +32,8 @@ BIOMES = {
             {"name": "Cá Diếp", "base_value": 20, "min_size": 5, "max_size": 20, "emoji": emojis.FISH_GOLDFISH, "spawn_rate": 30},
             {"name": "Cá Hồi", "base_value": 30, "min_size": 30, "max_size": 60, "emoji": emojis.FISH_SALMON, "spawn_rate": 20},
             {"name": "Cá Tuyết", "base_value": 40, "min_size": 40, "max_size": 80, "emoji": emojis.FISH_COD, "spawn_rate": 10},
-            {"name": "Cua", "base_value": 30, "min_size": 5, "max_size": 30, "emoji": emojis.FISH_CRAB, "spawn_rate": 5},
-            {"name": "Tôm", "base_value": 30, "min_size": 5, "max_size": 30, "emoji": emojis.FISH_SHRIMP, "spawn_rate": 5},
+            {"name": "Cua", "base_value": 30, "min_size": 5, "max_size": 30, "emoji": emojis.FISH_CRAB, "spawn_rate": 15},
+            {"name": "Tôm", "base_value": 30, "min_size": 5, "max_size": 30, "emoji": emojis.FISH_SHRIMP, "spawn_rate": 15},
             {"name": "Cá Koi", "base_value": 10000000, "min_size": 30, "max_size": 100, "emoji": emojis.KING_RIVER1, "spawn_rate": 0.02},
             {"name": "Cá Vàng", "base_value": 2500000, "min_size": 5, "max_size": 30, "emoji": emojis.KING_RIVER2, "spawn_rate": 0.2},
             {"name": "Mega Gyarados", "base_value": 50000000, "min_size": 300, "max_size": 1000, "emoji": emojis.KING_RIVER3, "spawn_rate": 0.01},
@@ -1243,9 +1243,9 @@ class CauCaCog(commands.Cog):
                 for f in fish_pool:
                      base_rate = f.get("spawn_rate", 10)
                      if base_rate <= 20: 
-                          # Boost rare fish: +2% weight per 1 Luck
-                          # Example: Luck 50 => +100% chance (double the rate)
-                          w = base_rate * (1 + (eff_luck * 0.02))
+                          # Boost rare fish: +0.1% weight per 1 Luck (Reduced further)
+                          # Example: Luck 1000 => +100% chance (2x) - Very hard scaling
+                          w = base_rate * (1 + (eff_luck * 0.001))
                      else:
                           # Common fish: Slight boost or neutral
                           w = base_rate
@@ -1846,7 +1846,7 @@ class CauCaCog(commands.Cog):
                     
                     # Announcement Embed
                     embed = discord.Embed(title="🐲 RỒNG THẦN ĐÃ XUẤT HIỆN!", description=f"**{inter.user.name}** đã tập hợp đủ 7 viên ngọc rồng và triệu hồi Rồng Thần!\n\n🌌 **ĐIỀU ƯỚC ĐÃ ĐƯỢC THỰC HIỆN:**\nNgười chơi nhận được **{amount_req:,}** Coinz {emojis.ANIMATED_EMOJI_COIZ}!", color=discord.Color.dark_green())
-                    embed.set_image(url="https://media1.tenor.com/m/YwWvG1yR2bAAAAAd/shenron-dragon-ball.gif") # Shenron GIF placeholder or emoji
+                    embed.set_image(url="https://media1.tenor.com/m/GI3okMgQ0m4AAAAC/shenron-dragon-ball-z.gif") # Shenron GIF placeholder or emoji
                     embed.set_thumbnail(url=inter.user.avatar.url if inter.user.avatar else None)
                     
                     # Ping everyone as requested
